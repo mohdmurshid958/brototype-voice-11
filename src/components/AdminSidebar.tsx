@@ -2,11 +2,17 @@ import { Home, MessageSquare, FolderKanban, Users, BarChart3, User, LogOut, Menu
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useState } from "react";
+import { useAdminNavigation } from "@/contexts/AdminNavigationContext";
 
 export function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { navigationType } = useAdminNavigation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  if (navigationType === "menubar") {
+    return null;
+  }
 
   const links = [
     { to: "/admin/dashboard", icon: Home, label: "Dashboard" },

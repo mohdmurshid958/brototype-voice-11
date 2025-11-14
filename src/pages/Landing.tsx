@@ -7,11 +7,12 @@ export default function Landing() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
+      <section className="pt-32 pb-20 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
         <div className="container mx-auto">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-8 animate-fade-in">
-              <MessageSquare className="h-4 w-4" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-8 animate-fade-in hover:scale-105 transition-transform">
+              <MessageSquare className="h-4 w-4 animate-pulse" />
               <span className="text-sm font-medium">Complaint Management System</span>
             </div>
             
@@ -19,15 +20,15 @@ export default function Landing() {
               Raise Your Voice, Get Heard 💬
             </h1>
             
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in">
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
               A transparent complaint system for Brototype students — fast, fair, and reliable.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in">
-              <Button size="lg" asChild className="hero-gradient text-lg h-12 px-8">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in opacity-0" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
+              <Button size="lg" asChild className="hero-gradient text-lg h-12 px-8 hover:scale-105 transition-transform">
                 <Link to="/student/dashboard">Submit a Complaint</Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="text-lg h-12 px-8">
+              <Button size="lg" variant="outline" asChild className="text-lg h-12 px-8 hover:scale-105 transition-transform">
                 <Link to="/admin/dashboard">Admin Login</Link>
               </Button>
             </div>
@@ -50,8 +51,12 @@ export default function Landing() {
               { icon: MessageSquare, title: "Respond", desc: "Get timely responses and updates" },
               { icon: CheckCircle, title: "Resolve", desc: "Track resolution in real-time" },
             ].map((step, i) => (
-              <Card key={i} className="p-6 text-center hover:scale-105 transition-transform hover:glow-effect">
-                <div className="h-16 w-16 rounded-full hero-gradient flex items-center justify-center mx-auto mb-4">
+              <Card 
+                key={i} 
+                className="p-6 text-center hover:scale-105 transition-all duration-300 hover:shadow-lg hover:border-primary/50 animate-fade-in opacity-0"
+                style={{ animationDelay: `${i * 0.1}s`, animationFillMode: 'forwards' }}
+              >
+                <div className="h-16 w-16 rounded-full hero-gradient flex items-center justify-center mx-auto mb-4 animate-pulse">
                   <step.icon className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="font-bold text-xl mb-2">{step.title}</h3>
@@ -77,7 +82,11 @@ export default function Landing() {
               { icon: Bell, title: "Fast Response", desc: "Quick admin acknowledgment" },
               { icon: Users, title: "Transparency", desc: "Full visibility into the process" },
             ].map((feature, i) => (
-              <Card key={i} className="p-6 hover:border-primary transition-colors">
+              <Card 
+                key={i} 
+                className="p-6 hover:border-primary transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in opacity-0"
+                style={{ animationDelay: `${i * 0.1}s`, animationFillMode: 'forwards' }}
+              >
                 <feature.icon className="h-10 w-10 text-primary mb-4" />
                 <h3 className="font-bold text-lg mb-2">{feature.title}</h3>
                 <p className="text-muted-foreground text-sm">{feature.desc}</p>
