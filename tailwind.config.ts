@@ -57,6 +57,10 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        surface: {
+          light: "hsl(var(--surface-light))",
+          elevated: "hsl(var(--surface-elevated))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
