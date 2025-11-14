@@ -3,8 +3,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function StudentComplaints() {
+  const navigate = useNavigate();
+  
   const complaints = [
     {
       id: 1,
@@ -53,12 +56,42 @@ export default function StudentComplaints() {
     <div className="flex min-h-screen">
       <StudentSidebar />
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">My Complaints</h1>
-          <p className="text-muted-foreground mb-8">View and track all your submitted complaints</p>
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">My Complaints</h1>
+          <p className="text-muted-foreground mb-6 md:mb-8">View and track all your submitted complaints</p>
 
-          <Card className="p-6">
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            {complaints.map((complaint) => (
+              <Card key={complaint.id} className="p-4">
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-sm flex-1">{complaint.title}</h3>
+                    <Badge className={getStatusColor(complaint.status)}>
+                      {complaint.status}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    <span className="bg-muted px-2 py-1 rounded">{complaint.category}</span>
+                    <span>{complaint.date}</span>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => navigate(`/student/complaints/${complaint.id}`)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Details
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <Card className="p-6 hidden md:block">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -82,7 +115,11 @@ export default function StudentComplaints() {
                       </td>
                       <td className="py-4 px-4 text-muted-foreground">{complaint.date}</td>
                       <td className="py-4 px-4 text-right">
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => navigate(`/student/complaints/${complaint.id}`)}
+                        >
                           <Eye className="h-4 w-4 mr-2" />
                           View
                         </Button>
