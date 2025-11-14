@@ -1,95 +1,150 @@
 import { AdminSidebar } from "@/components/AdminSidebar";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { User, Mail, Phone, MapPin, Building, Calendar, Settings, Camera } from "lucide-react";
+import { useState } from "react";
+import { useAdminNavigation } from "@/contexts/AdminNavigationContext";
 
 export default function AdminProfile() {
+  const { navigationType, setNavigationType } = useAdminNavigation();
+  const [useMenubar, setUseMenubar] = useState(navigationType === "menubar");
+
+  const handleNavigationToggle = (checked: boolean) => {
+    setUseMenubar(checked);
+    setNavigationType(checked ? "menubar" : "sidebar");
+  };
+
   return (
     <div className="flex min-h-screen w-full">
       <AdminSidebar />
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">Profile Settings</h1>
-          <p className="text-muted-foreground mb-8">Manage your account information</p>
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">Profile Settings</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Manage your account settings and preferences</p>
+          </div>
 
           <div className="grid gap-6">
-            <Card className="p-6">
-              <div className="flex items-start gap-6">
-                <div className="relative">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>AD</AvatarFallback>
-                  </Avatar>
-                  <Button size="icon" className="absolute bottom-0 right-0 h-8 w-8 rounded-full">
-                    <Camera className="h-4 w-4" />
-                  </Button>
+            <Card className="animate-fade-in">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Navigation Preferences
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="navigation-mode">Use Menubar (Dock)</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Switch between sidebar and bottom menubar navigation
+                    </p>
+                  </div>
+                  <Switch
+                    id="navigation-mode"
+                    checked={useMenubar}
+                    onCheckedChange={handleNavigationToggle}
+                  />
                 </div>
-                <div className="flex-1">
-                  <h2 className="text-xl font-semibold mb-4">Profile Picture</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Click the camera icon to upload a new profile picture
-                  </p>
-                </div>
-              </div>
+              </CardContent>
             </Card>
 
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-6">Personal Information</h2>
-              <div className="grid gap-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" defaultValue="Admin" />
+            <Card className="animate-fade-in">
+              <CardHeader>
+                <CardTitle>Personal Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex flex-col sm:flex-row items-start gap-6">
+                  <div className="relative mx-auto sm:mx-0">
+                    <Avatar className="h-24 w-24">
+                      <AvatarImage src="https://github.com/shadcn.png" />
+                      <AvatarFallback>AD</AvatarFallback>
+                    </Avatar>
+                    <Button size="icon" className="absolute bottom-0 right-0 h-8 w-8 rounded-full">
+                      <Camera className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <div>
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" defaultValue="User" />
+                  <div className="flex-1 text-center sm:text-left">
+                    <h2 className="text-lg md:text-xl font-semibold mb-2">Profile Picture</h2>
+                    <p className="text-xs md:text-sm text-muted-foreground">
+                      Click the camera icon to upload a new profile picture
+                    </p>
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue="admin@brototype.com" />
-                </div>
+                <div className="grid gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="firstName" className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        First Name
+                      </Label>
+                      <Input id="firstName" defaultValue="Admin" />
+                    </div>
+                    <div>
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input id="lastName" defaultValue="User" />
+                    </div>
+                  </div>
 
-                <div>
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" type="tel" defaultValue="+91 1234567890" />
-                </div>
+                  <div>
+                    <Label htmlFor="email" className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email
+                    </Label>
+                    <Input id="email" type="email" defaultValue="admin@brototype.com" />
+                  </div>
 
-                <div>
-                  <Label htmlFor="role">Role</Label>
-                  <Input id="role" defaultValue="Administrator" disabled />
-                </div>
+                  <div>
+                    <Label htmlFor="phone" className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      Phone Number
+                    </Label>
+                    <Input id="phone" type="tel" defaultValue="+91 1234567890" />
+                  </div>
 
-                <div className="flex gap-4">
-                  <Button className="hero-gradient">Save Changes</Button>
-                  <Button variant="outline">Cancel</Button>
+                  <div>
+                    <Label htmlFor="role" className="flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      Role
+                    </Label>
+                    <Input id="role" defaultValue="Administrator" disabled />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Button className="hero-gradient w-full sm:w-auto">Save Changes</Button>
+                    <Button variant="outline" className="w-full sm:w-auto">Cancel</Button>
+                  </div>
                 </div>
-              </div>
+              </CardContent>
             </Card>
 
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-6">Change Password</h2>
-              <div className="grid gap-4">
-                <div>
-                  <Label htmlFor="currentPassword">Current Password</Label>
-                  <Input id="currentPassword" type="password" />
+            <Card className="animate-fade-in">
+              <CardHeader>
+                <CardTitle>Change Password</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4">
+                  <div>
+                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Input id="currentPassword" type="password" />
+                  </div>
+                  <div>
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input id="newPassword" type="password" />
+                  </div>
+                  <div>
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <Input id="confirmPassword" type="password" />
+                  </div>
+                  <Button className="w-full sm:w-fit">Update Password</Button>
                 </div>
-                <div>
-                  <Label htmlFor="newPassword">New Password</Label>
-                  <Input id="newPassword" type="password" />
-                </div>
-                <div>
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <Input id="confirmPassword" type="password" />
-                </div>
-                <Button className="w-fit">Update Password</Button>
-              </div>
+              </CardContent>
             </Card>
           </div>
         </div>

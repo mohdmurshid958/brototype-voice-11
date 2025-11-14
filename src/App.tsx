@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { AdminNavigationProvider, useAdminNavigation } from "./contexts/AdminNavigationContext";
 import { Navbar } from "./components/Navbar";
 import Landing from "./pages/Landing";
 import Login from "./pages/LoginNew";
@@ -28,6 +29,7 @@ const queryClient = new QueryClient();
 
 function AppContent() {
   const location = useLocation();
+  const { navigationType } = useAdminNavigation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isStudentRoute = location.pathname.startsWith('/student');
   const showNavbar = location.pathname === '/' || location.pathname === '/login';
@@ -53,7 +55,7 @@ function AppContent() {
         <Route path="*" element={<NotFound />} />
       </Routes>
       
-      {isAdminRoute && <AdminDock />}
+      {isAdminRoute && navigationType === "menubar" && <AdminDock />}
       {isAdminRoute && <AdminMobileNav />}
       {isStudentRoute && <StudentMobileNav />}
     </>
@@ -67,7 +69,9 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AppContent />
+          <AdminNavigationProvider>
+            <AppContent />
+          </AdminNavigationProvider>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
