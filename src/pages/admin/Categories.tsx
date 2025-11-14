@@ -153,20 +153,20 @@ export default function AdminCategories() {
             )}
           </Card>
 
-          <Card className="p-6 mt-6">
-            <h2 className="text-xl font-bold mb-4">Category Statistics</h2>
-            <div className="space-y-4">
+          <Card className="p-4 md:p-6 mt-6">
+            <h2 className="text-lg md:text-xl font-bold mb-4">Category Statistics</h2>
+            <div className="space-y-3 md:space-y-4">
               {categories.map((category) => (
-                <div key={category.id} className="flex items-center justify-between">
+                <div key={category.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
                   <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full bg-${category.color}-500`}></div>
-                    <span className="font-medium">{category.name}</span>
+                    <div className={`w-3 h-3 rounded-full bg-${category.color}-500 flex-shrink-0`}></div>
+                    <span className="font-medium text-sm md:text-base">{category.name}</span>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-muted-foreground">{category.count} complaints</span>
-                    <div className="w-32 bg-muted rounded-full h-2">
+                  <div className="flex items-center gap-3 md:gap-4 pl-6 sm:pl-0">
+                    <span className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">{category.count} complaints</span>
+                    <div className="flex-1 sm:w-24 md:w-32 bg-muted rounded-full h-2">
                       <div
-                        className={`bg-${category.color}-500 h-2 rounded-full`}
+                        className={`bg-${category.color}-500 h-2 rounded-full transition-all duration-300`}
                         style={{ width: `${(category.count / 48) * 100}%` }}
                       ></div>
                     </div>
