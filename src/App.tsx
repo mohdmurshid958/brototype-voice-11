@@ -7,7 +7,7 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import { AdminNavigationProvider, useAdminNavigation } from "./contexts/AdminNavigationContext";
 import { Navbar } from "./components/Navbar";
 import Landing from "./pages/Landing";
-import Login from "./pages/LoginNew";
+import Login from "./pages/Login";
 import StudentDashboard from "./pages/student/Dashboard";
 import StudentComplaintDetail from "./pages/student/ComplaintDetail";
 import SubmitComplaint from "./pages/student/SubmitComplaint";
