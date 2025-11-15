@@ -179,4 +179,29 @@ All colors MUST be HSL.
   .transition-navigation {
     @apply transition-all duration-500 ease-in-out;
   }
+
+  /* Animation delay utilities */
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+  .delay-500 {
+    animation-delay: 500ms;
+  }
+  .delay-700 {
+    animation-delay: 700ms;
+  }
+  
+  /* Fade gradient from top */
+  .fade-top-lg {
+    mask-image: linear-gradient(to bottom, 
+      transparent, 
+      rgba(0, 0, 0, 1) 8rem
+    );
+  }
 }

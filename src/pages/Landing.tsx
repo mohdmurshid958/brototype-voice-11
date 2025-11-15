@@ -5,6 +5,7 @@ import { MessageSquare, Send, Clock, CheckCircle, Shield, Bell, TrendingUp, User
 import { motion } from "framer-motion";
 import DisplayCards from "@/components/ui/display-cards";
 import { DottedSurface } from "@/components/ui/dotted-surface";
+import { CTASection } from "@/components/ui/cta-with-rectangle";
 
 export default function Landing() {
   const containerVariants = {
@@ -289,32 +290,18 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-4 hero-gradient relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utb3BhY2l0eT0iLjA1IiBzdHJva2Utd2lkdGg9IjIiLz48L2c+PC9zdmc+')] opacity-20" />
-        <motion.div 
-          className="container mx-auto text-center relative z-10"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white glow-text">Ready to Get Started?</h2>
-          <p className="text-white/90 text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
-            Join the Brototype Complaint Portal — where your voice matters and gets heard.
-          </p>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Button size="lg" variant="secondary" asChild className="text-lg h-14 px-10 shadow-2xl hover:shadow-white/20">
-              <Link to="/student/dashboard">
-                Get Started Now
-                <Send className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-          </motion.div>
-        </motion.div>
-      </section>
+      <CTASection
+        badge={{ text: "Get Started Today" }}
+        title="Ready to Get Started?"
+        description="Join the Brototype Complaint Portal — where your voice matters and gets heard. Submit, track, and resolve complaints effortlessly."
+        action={{
+          text: "Get Started Now",
+          href: "/student/dashboard",
+          variant: "default"
+        }}
+        withGlow={true}
+        className="bg-gradient-to-br from-background via-muted/30 to-background"
+      />
 
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-border">
