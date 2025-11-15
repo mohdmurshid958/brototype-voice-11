@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { AdminNavigationProvider, useAdminNavigation } from "./contexts/AdminNavigationContext";
+import { StudentNavigationProvider } from "./contexts/StudentNavigationContext";
 import { Navbar } from "./components/Navbar";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -70,7 +71,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AdminNavigationProvider>
-            <AppContent />
+            <StudentNavigationProvider>
+              <AppContent />
+            </StudentNavigationProvider>
           </AdminNavigationProvider>
         </BrowserRouter>
       </TooltipProvider>
