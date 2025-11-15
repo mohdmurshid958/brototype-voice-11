@@ -7,16 +7,16 @@ export default function Login() {
   const [isSignup, setIsSignup] = useState(false);
 
   const handleSubmit = (email: string, password: string, name?: string) => {
-    // Check for admin credentials
-    if (email === "admin@example.com" && password === "admin@123") {
-      setTimeout(() => {
+    // Check for admin credentials - works for both login and signup
+    const isAdmin = email === "admin@example.com" && password === "admin@123";
+    
+    setTimeout(() => {
+      if (isAdmin) {
         navigate("/admin/dashboard");
-      }, 2000);
-    } else {
-      setTimeout(() => {
+      } else {
         navigate("/student/dashboard");
-      }, 2000);
-    }
+      }
+    }, 4000); // Increased timeout to match loading animation duration
   };
 
   const handleToggleMode = () => {

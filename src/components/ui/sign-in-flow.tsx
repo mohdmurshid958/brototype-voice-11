@@ -347,16 +347,17 @@ export const SignInFlow = ({ className, onSubmit, isSignup = false, onToggleMode
   const [reverseCanvasVisible, setReverseCanvasVisible] = useState(false);
 
   const signupMessages = [
-    "connecting db....",
-    "adding data...",
-    "setting your environment.....",
+    "Connecting db....",
+    "Adding data...",
+    "Setting your environment.....",
   ];
 
   const loginMessages = [
-    "connecting db....",
-    "finding collection....",
-    "fetching data.....",
-    "verifying access...",
+    "Signing in...",
+    "Connecting db....",
+    "Finding collection....",
+    "Fetching data.....",
+    "Verifying access...",
   ];
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -373,7 +374,7 @@ export const SignInFlow = ({ className, onSubmit, isSignup = false, onToggleMode
       if (currentMessageIndex < loadingMessages.length) {
         const timer = setTimeout(() => {
           setCurrentMessageIndex(currentMessageIndex + 1);
-        }, 800);
+        }, 700);
         return () => clearTimeout(timer);
       } else {
         setReverseCanvasVisible(true);
@@ -384,7 +385,7 @@ export const SignInFlow = ({ className, onSubmit, isSignup = false, onToggleMode
         setTimeout(() => {
           setStep("success");
           onSubmit(email, password, name);
-        }, 1500);
+        }, 1000);
       }
     }
   }, [step, currentMessageIndex, loadingMessages.length]);
@@ -398,8 +399,8 @@ export const SignInFlow = ({ className, onSubmit, isSignup = false, onToggleMode
               animationSpeed={3}
               containerClassName="bg-background"
               colors={[
-                [147, 51, 234],
-                [59, 130, 246],
+                [220, 38, 38],
+                [239, 68, 68],
               ]}
               dotSize={6}
               reverse={false}
@@ -413,8 +414,8 @@ export const SignInFlow = ({ className, onSubmit, isSignup = false, onToggleMode
               animationSpeed={4}
               containerClassName="bg-background"
               colors={[
-                [147, 51, 234],
-                [59, 130, 246],
+                [220, 38, 38],
+                [239, 68, 68],
               ]}
               dotSize={6}
               reverse={true}
@@ -513,38 +514,98 @@ export const SignInFlow = ({ className, onSubmit, isSignup = false, onToggleMode
               ) : step === "loading" ? (
                 <motion.div 
                   key="loading-step"
-                  initial={{ opacity: 0, y: 50 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -50 }}
+                  initial={{ opacity: 0, x: 100 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 100 }}
                   transition={{ duration: 0.4, ease: "easeOut" }}
-                  className="space-y-6 text-center"
+                  className="space-y-8 text-center"
                 >
-                  <div className="space-y-1">
-                    <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-foreground">
-                      {isSignup ? "Setting up..." : "Signing in..."}
-                    </h1>
-                  </div>
+                  <motion.h1 
+                    className="text-[2.5rem] font-bold tracking-tight text-foreground"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    {isSignup ? "Setting Up..." : "Loading..."}
+                  </motion.h1>
                   
-                  <div className="py-10 space-y-3">
+                  <div className="space-y-5 text-left max-w-md mx-auto">
                     {loadingMessages.map((message, index) => (
                       <motion.div
                         key={index}
                         initial={{ opacity: 0, x: -20 }}
-                        animate={{ 
-                          opacity: index <= currentMessageIndex ? 1 : 0.3,
-                          x: 0 
+                        animate={{
+                          opacity: index <= currentMessageIndex ? 1 : 0.4,
+                          x: 0,
                         }}
-                        transition={{ duration: 0.3 }}
-                        className={`text-lg ${index <= currentMessageIndex ? 'text-foreground' : 'text-muted-foreground'}`}
+                        transition={{ delay: index * 0.1 }}
+                        className={cn(
+                          "relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-500",
+                          index < currentMessageIndex
+                            ? "bg-green-500/10 border border-green-500/20"
+                            : index === currentMessageIndex
+                            ? "bg-primary/10 border border-primary/30 shadow-lg shadow-primary/20"
+                            : "bg-muted/30 border border-transparent"
+                        )}
                       >
-                        {message}
+                        <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
+                          {index < currentMessageIndex ? (
+                            <motion.svg
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="w-5 h-5 text-green-500"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <motion.path
+                                initial={{ pathLength: 0 }}
+                                animate={{ pathLength: 1 }}
+                                transition={{ duration: 0.3 }}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </motion.svg>
+                          ) : index === currentMessageIndex ? (
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{
+                                duration: 1,
+                                repeat: Infinity,
+                                ease: "linear",
+                              }}
+                              className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full"
+                            />
+                          ) : (
+                            <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
+                          )}
+                        </div>
+                        <span
+                          className={cn(
+                            "text-[1.1rem] font-medium transition-colors duration-300",
+                            index < currentMessageIndex
+                              ? "text-green-500"
+                              : index === currentMessageIndex
+                              ? "text-foreground"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          {message}
+                        </span>
                         {index === currentMessageIndex && (
-                          <motion.span
-                            animate={{ opacity: [1, 0] }}
-                            transition={{ duration: 0.8, repeat: Infinity }}
-                          >
-                            |
-                          </motion.span>
+                          <motion.div
+                            className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0"
+                            animate={{
+                              x: ["-100%", "100%"],
+                            }}
+                            transition={{
+                              duration: 1.5,
+                              repeat: Infinity,
+                              ease: "linear",
+                            }}
+                          />
                         )}
                       </motion.div>
                     ))}
