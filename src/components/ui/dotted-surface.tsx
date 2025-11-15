@@ -63,11 +63,11 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         const z = iy * SEPARATION - (AMOUNTY * SEPARATION) / 2;
 
         positions.push(x, y, z);
-        // Use theme colors
+        // Use theme colors matching our red primary theme
         if (theme === 'dark') {
-          colors.push(147, 51, 234); // purple-600 in RGB
+          colors.push(239, 68, 68); // red-500 in RGB for dark mode
         } else {
-          colors.push(79, 70, 229); // indigo-600 in RGB
+          colors.push(220, 38, 38); // red-600 in RGB for light mode
         }
       }
     }
@@ -78,12 +78,12 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     );
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
-    // Create material
+    // Create material with better visibility
     const material = new THREE.PointsMaterial({
       size: 8,
       vertexColors: true,
       transparent: true,
-      opacity: 0.6,
+      opacity: theme === 'dark' ? 0.6 : 0.8, // More visible in light mode
       sizeAttenuation: true,
     });
 
