@@ -5,17 +5,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
-import { User, Mail, Phone, MapPin, Building, Calendar, Settings, Camera } from "lucide-react";
+import { User, Mail, Phone, MapPin, Building, Calendar, Settings, Camera, LogOut } from "lucide-react";
 import { useState } from "react";
 import { useAdminNavigation } from "@/contexts/AdminNavigationContext";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function AdminProfile() {
   const { navigationType, setNavigationType } = useAdminNavigation();
   const [useMenubar, setUseMenubar] = useState(navigationType === "menubar");
+  const navigate = useNavigate();
 
   const handleNavigationToggle = (checked: boolean) => {
     setUseMenubar(checked);
     setNavigationType(checked ? "menubar" : "sidebar");
+    toast.success(checked ? "Switched to bottom navigation (dock)" : "Switched to sidebar navigation");
+  };
+
+  const handleLogout = () => {
+    toast.success("Logged out successfully");
+    setTimeout(() => {
+      navigate("/login");
+    }, 500);
   };
 
   return (
@@ -40,9 +51,9 @@ export default function AdminProfile() {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="navigation-mode">Use Menubar (Dock)</Label>
+                    <Label htmlFor="navigation-mode">Use Bottom Navigation (Dock)</Label>
                     <p className="text-sm text-muted-foreground">
-                      Switch between sidebar and bottom menubar navigation
+                      Switch between sidebar and bottom navigation bar
                     </p>
                   </div>
                   <Switch
@@ -142,13 +153,37 @@ export default function AdminProfile() {
                     <Label htmlFor="confirmPassword">Confirm New Password</Label>
                     <Input id="confirmPassword" type="password" />
                   </div>
-                  <Button className="w-full sm:w-fit">Update Password</Button>
+                <Button className="w-full sm:w-fit">Update Password</Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="animate-fade-in border-destructive/50">
+            <CardHeader>
+              <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-semibold mb-1">Logout</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Sign out of your account
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                <Button 
+                  variant="destructive" 
+                  className="w-full sm:w-auto"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </main>
-    </div>
-  );
+      </div>
+    </main>
+  </div>
+);
 }
