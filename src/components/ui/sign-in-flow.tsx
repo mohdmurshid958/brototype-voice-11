@@ -1,7 +1,6 @@
-"use client";
-
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
@@ -22,6 +21,13 @@ interface ShaderProps {
     };
   };
   maxFps?: number;
+}
+
+interface SignInPageProps {
+  className?: string;
+  onSubmit: (email: string, password: string, name?: string) => void;
+  isSignup?: boolean;
+  onToggleMode?: () => void;
 }
 
 export const CanvasRevealEffect = ({
@@ -58,7 +64,7 @@ export const CanvasRevealEffect = ({
         />
       </div>
       {showGradient && (
-        <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
       )}
     </div>
   );
@@ -157,6 +163,9 @@ const DotMatrix: React.FC<DotMatrixProps> = ({
         float random(vec2 xy) {
             return fract(tan(distance(xy * PHI, xy) * 0.5) * xy.x);
         }
+        float map(float value, float min1, float max1, float min2, float max2) {
+            return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+        }
 
         void main() {
             vec2 st = fragCoord.xy;
@@ -220,6 +229,7 @@ const ShaderMaterial = ({
   maxFps = 60,
 }: {
   source: string;
+  hovered?: boolean;
   maxFps?: number;
   uniforms: Uniforms;
 }) => {
@@ -284,7 +294,7 @@ const ShaderMaterial = ({
     return preparedUniforms;
   };
 
-  const material = useMemo(() => {
+  const material = React.useMemo(() => {
     const materialObject = new THREE.ShaderMaterial({
       vertexShader: `
       precision mediump float;
@@ -323,5 +333,254 @@ const Shader: React.FC<ShaderProps> = ({ source, uniforms, maxFps = 60 }) => {
     <Canvas className="absolute inset-0 h-full w-full">
       <ShaderMaterial source={source} uniforms={uniforms} maxFps={maxFps} />
     </Canvas>
+  );
+};
+
+export const SignInFlow = ({ className, onSubmit, isSignup = false, onToggleMode }: SignInPageProps) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [step, setStep] = useState<"form" | "loading" | "success">("form");
+  const [loadingMessages, setLoadingMessages] = useState<string[]>([]);
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  const [initialCanvasVisible, setInitialCanvasVisible] = useState(true);
+  const [reverseCanvasVisible, setReverseCanvasVisible] = useState(false);
+
+  const signupMessages = [
+    "connecting db....",
+    "adding data...",
+    "setting your environment.....",
+  ];
+
+  const loginMessages = [
+    "connecting db....",
+    "finding collection....",
+    "fetching data.....",
+    "verifying access...",
+  ];
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email && password && (!isSignup || name)) {
+      setLoadingMessages(isSignup ? signupMessages : loginMessages);
+      setCurrentMessageIndex(0);
+      setStep("loading");
+    }
+  };
+
+  useEffect(() => {
+    if (step === "loading") {
+      if (currentMessageIndex < loadingMessages.length) {
+        const timer = setTimeout(() => {
+          setCurrentMessageIndex(currentMessageIndex + 1);
+        }, 800);
+        return () => clearTimeout(timer);
+      } else {
+        setReverseCanvasVisible(true);
+        setTimeout(() => {
+          setInitialCanvasVisible(false);
+        }, 50);
+        
+        setTimeout(() => {
+          setStep("success");
+          onSubmit(email, password, name);
+        }, 1500);
+      }
+    }
+  }, [step, currentMessageIndex, loadingMessages.length]);
+
+  return (
+    <div className={cn("flex w-full flex-col min-h-screen relative", className)}>
+      <div className="absolute inset-0 z-0">
+        {initialCanvasVisible && (
+          <div className="absolute inset-0">
+            <CanvasRevealEffect
+              animationSpeed={3}
+              containerClassName="bg-background"
+              colors={[
+                [147, 51, 234],
+                [59, 130, 246],
+              ]}
+              dotSize={6}
+              reverse={false}
+            />
+          </div>
+        )}
+        
+        {reverseCanvasVisible && (
+          <div className="absolute inset-0">
+            <CanvasRevealEffect
+              animationSpeed={4}
+              containerClassName="bg-background"
+              colors={[
+                [147, 51, 234],
+                [59, 130, 246],
+              ]}
+              dotSize={6}
+              reverse={true}
+            />
+          </div>
+        )}
+      </div>
+      
+      <div className="relative z-10 flex flex-col flex-1">
+        <div className="flex flex-1 flex-col justify-center items-center px-4">
+          <div className="w-full max-w-sm">
+            <AnimatePresence mode="wait">
+              {step === "form" ? (
+                <motion.div 
+                  key="form-step"
+                  initial={{ opacity: 0, x: -100 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -100 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="space-y-6 text-center"
+                >
+                  <div className="space-y-1">
+                    <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-foreground">
+                      {isSignup ? "Create Account" : "Welcome Back"}
+                    </h1>
+                    <p className="text-[1.8rem] text-muted-foreground font-light">
+                      {isSignup ? "Join the portal" : "Sign in to continue"}
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <form onSubmit={handleFormSubmit} className="space-y-4">
+                      {isSignup && (
+                        <div className="relative">
+                          <input 
+                            type="text" 
+                            placeholder="Full Name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="w-full backdrop-blur-[1px] bg-background/5 text-foreground border border-border rounded-full py-3 px-4 focus:outline-none focus:border-primary/50 text-center"
+                            required
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="relative">
+                        <input 
+                          type="email" 
+                          placeholder="info@example.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full backdrop-blur-[1px] bg-background/5 text-foreground border border-border rounded-full py-3 px-4 focus:outline-none focus:border-primary/50 text-center"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="relative">
+                        <input 
+                          type="password" 
+                          placeholder="Password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full backdrop-blur-[1px] bg-background/5 text-foreground border border-border rounded-full py-3 px-4 focus:outline-none focus:border-primary/50 text-center"
+                          required
+                        />
+                        <button 
+                          type="submit"
+                          className="absolute right-1.5 top-1.5 text-foreground w-9 h-9 flex items-center justify-center rounded-full bg-primary/20 hover:bg-primary/30 transition-colors group overflow-hidden"
+                        >
+                          <span className="relative w-full h-full block overflow-hidden">
+                            <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-full">
+                              →
+                            </span>
+                            <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 -translate-x-full group-hover:translate-x-0">
+                              →
+                            </span>
+                          </span>
+                        </button>
+                      </div>
+                    </form>
+                    
+                    <div className="pt-4">
+                      <button 
+                        onClick={onToggleMode}
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {isSignup ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground pt-10">
+                    By continuing, you agree to our <Link to="#" className="underline hover:text-foreground transition-colors">Terms</Link> and <Link to="#" className="underline hover:text-foreground transition-colors">Privacy Policy</Link>.
+                  </p>
+                </motion.div>
+              ) : step === "loading" ? (
+                <motion.div 
+                  key="loading-step"
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -50 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="space-y-6 text-center"
+                >
+                  <div className="space-y-1">
+                    <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-foreground">
+                      {isSignup ? "Setting up..." : "Signing in..."}
+                    </h1>
+                  </div>
+                  
+                  <div className="py-10 space-y-3">
+                    {loadingMessages.map((message, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ 
+                          opacity: index <= currentMessageIndex ? 1 : 0.3,
+                          x: 0 
+                        }}
+                        transition={{ duration: 0.3 }}
+                        className={`text-lg ${index <= currentMessageIndex ? 'text-foreground' : 'text-muted-foreground'}`}
+                      >
+                        {message}
+                        {index === currentMessageIndex && (
+                          <motion.span
+                            animate={{ opacity: [1, 0] }}
+                            transition={{ duration: 0.8, repeat: Infinity }}
+                          >
+                            |
+                          </motion.span>
+                        )}
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="success-step"
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, ease: "easeOut", delay: 0.3 }}
+                  className="space-y-6 text-center"
+                >
+                  <div className="space-y-1">
+                    <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-foreground">You're in!</h1>
+                    <p className="text-[1.25rem] text-muted-foreground font-light">Welcome</p>
+                  </div>
+                  
+                  <motion.div 
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.5 }}
+                    className="py-10"
+                  >
+                    <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary-foreground" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
