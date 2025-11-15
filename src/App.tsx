@@ -32,7 +32,7 @@ function AppContent() {
   const { navigationType } = useAdminNavigation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isStudentRoute = location.pathname.startsWith('/student');
-  const showNavbar = location.pathname === '/' || location.pathname === '/login';
+  const showNavbar = location.pathname === '/';
 
   return (
     <>

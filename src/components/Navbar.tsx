@@ -33,7 +33,7 @@ export function Navbar() {
               <Button variant="ghost" asChild>
                 <Link to="/login">Login</Link>
               </Button>
-              <Button asChild className="hero-gradient">
+              <Button asChild className="hero-gradient hidden md:flex">
                 <Link to="/student/dashboard">Get Started</Link>
               </Button>
             </>

@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MessageSquare, Send, Clock, CheckCircle, Shield, Bell, TrendingUp, Users } from "lucide-react";
+import { MessageSquare, Send, Clock, CheckCircle, Shield, Bell, TrendingUp, Users, AlertCircle, FileText } from "lucide-react";
 import { motion } from "framer-motion";
+import DisplayCards from "@/components/ui/display-cards";
 
 export default function Landing() {
   const containerVariants = {
@@ -152,6 +153,63 @@ export default function Landing() {
                 </Card>
               </motion.div>
             ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Complaints Demo Section */}
+      <section className="py-20 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
+        <div className="container mx-auto">
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="text-4xl font-bold mb-4">Recent Complaints</h2>
+            <p className="text-muted-foreground text-lg">See how complaints are managed in real-time</p>
+          </motion.div>
+
+          <motion.div 
+            className="flex justify-center items-center min-h-[500px]"
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <DisplayCards 
+              cards={[
+                {
+                  icon: <AlertCircle className="size-4 text-destructive" />,
+                  title: "Urgent",
+                  description: "AC not working in Lab 2",
+                  date: "2 hours ago",
+                  iconClassName: "text-destructive",
+                  titleClassName: "text-destructive",
+                  className: "[grid-area:stack] hover:-translate-y-10 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0"
+                },
+                {
+                  icon: <FileText className="size-4 text-primary" />,
+                  title: "In Progress",
+                  description: "WiFi connectivity issues",
+                  date: "1 day ago",
+                  iconClassName: "text-primary",
+                  titleClassName: "text-primary",
+                  className: "[grid-area:stack] translate-x-16 translate-y-10 hover:-translate-y-1 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0"
+                },
+                {
+                  icon: <CheckCircle className="size-4 text-emerald-500" />,
+                  title: "Resolved",
+                  description: "Projector repaired successfully",
+                  date: "3 days ago",
+                  iconClassName: "text-emerald-500",
+                  titleClassName: "text-emerald-500",
+                  className: "[grid-area:stack] translate-x-32 translate-y-20 hover:translate-y-10"
+                }
+              ]}
+            />
           </motion.div>
         </div>
       </section>
