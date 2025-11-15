@@ -90,9 +90,10 @@ export default function Landing() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-20 px-4 bg-surface-light relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 shimmer" />
-        <div className="container mx-auto">
+      <section id="how-it-works" className="py-20 px-4 relative overflow-hidden bg-gradient-to-b from-background via-muted/30 to-background">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS1vcGFjaXR5PSIuMDUiIHN0cm9rZS13aWR0aD0iMiIvPjwvZz48L3N2Zz4=')] opacity-30 text-primary" />
+        
+        <div className="container mx-auto relative">
           <motion.div 
             className="text-center mb-16"
             initial={{ opacity: 0, y: 20 }}
@@ -100,33 +101,70 @@ export default function Landing() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">How It Works</h2>
-            <p className="text-muted-foreground text-lg md:text-xl">Simple process, powerful results</p>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">How It Works</h2>
+            <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto">A streamlined four-step process designed for efficiency and clarity</p>
           </motion.div>
 
           <motion.div 
-            className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto"
+            className="max-w-6xl mx-auto"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
             variants={containerVariants}
           >
-            {[
-              { icon: Send, title: "Submit", desc: "File your complaint with detailed information" },
-              { icon: Clock, title: "Review", desc: "Admin team reviews your submission" },
-              { icon: MessageSquare, title: "Respond", desc: "Get timely responses and updates" },
-              { icon: CheckCircle, title: "Resolve", desc: "Track resolution in real-time" },
-            ].map((step, i) => (
-              <motion.div key={i} variants={itemVariants}>
-                <Card className="p-6 text-center hover:scale-105 transition-all duration-300 hover:shadow-lg hover:border-primary/50 h-full">
-                  <div className="h-16 w-16 rounded-full hero-gradient flex items-center justify-center mx-auto mb-4">
-                    <step.icon className="h-8 w-8 text-white" />
-                  </div>
-                  <h3 className="font-bold text-xl mb-2">{step.title}</h3>
-                  <p className="text-muted-foreground">{step.desc}</p>
-                </Card>
-              </motion.div>
-            ))}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+              {[
+                { 
+                  icon: Send, 
+                  number: "01",
+                  title: "Submit Complaint", 
+                  desc: "File your complaint with detailed information and supporting evidence through our intuitive form" 
+                },
+                { 
+                  icon: Clock, 
+                  number: "02",
+                  title: "Admin Review", 
+                  desc: "Our dedicated admin team promptly reviews your submission and assesses priority levels" 
+                },
+                { 
+                  icon: MessageSquare, 
+                  number: "03",
+                  title: "Get Updates", 
+                  desc: "Receive timely responses and real-time status updates throughout the resolution process" 
+                },
+                { 
+                  icon: CheckCircle, 
+                  number: "04",
+                  title: "Track Resolution", 
+                  desc: "Monitor progress in real-time and get notified when your complaint is successfully resolved" 
+                },
+              ].map((step, i) => (
+                <motion.div key={i} variants={itemVariants} className="relative group">
+                  <Card className="p-6 h-full hover:shadow-2xl transition-all duration-500 border-border/50 hover:border-primary/50 relative overflow-hidden bg-card/80 backdrop-blur-sm">
+                    {/* Background gradient on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    
+                    {/* Step number */}
+                    <div className="absolute top-4 right-4 text-6xl font-bold text-primary/10 group-hover:text-primary/20 transition-colors duration-500">
+                      {step.number}
+                    </div>
+                    
+                    <div className="relative z-10">
+                      <div className="h-16 w-16 rounded-2xl hero-gradient flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 shadow-lg">
+                        <step.icon className="h-8 w-8 text-white" />
+                      </div>
+                      <h3 className="font-bold text-xl mb-3 group-hover:text-primary transition-colors duration-300">{step.title}</h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed">{step.desc}</p>
+                    </div>
+
+                    {/* Connecting line (hidden on last item) */}
+                    {i < 3 && (
+                      <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-primary/50 to-transparent" />
+                    )}
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
           </motion.div>
         </div>
       </section>

@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { AdminNavigationProvider, useAdminNavigation } from "./contexts/AdminNavigationContext";
-import { StudentNavigationProvider } from "./contexts/StudentNavigationContext";
+import { StudentNavigationProvider, useStudentNavigation } from "./contexts/StudentNavigationContext";
 import { Navbar } from "./components/Navbar";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -23,6 +23,7 @@ import AdminProfile from "./pages/admin/Profile";
 import AdminComplaintDetail from "./pages/admin/ComplaintDetail";
 import { AdminDock } from "./components/AdminDock";
 import { AdminMobileNav } from "./components/AdminMobileNav";
+import { StudentDock } from "./components/StudentDock";
 import { StudentMobileNav } from "./components/StudentMobileNav";
 import NotFound from "./pages/NotFound";
 
@@ -30,7 +31,8 @@ const queryClient = new QueryClient();
 
 function AppContent() {
   const location = useLocation();
-  const { navigationType } = useAdminNavigation();
+  const { navigationType: adminNavigationType } = useAdminNavigation();
+  const { navigationType: studentNavigationType } = useStudentNavigation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isStudentRoute = location.pathname.startsWith('/student');
   const showNavbar = location.pathname === '/';
@@ -56,8 +58,9 @@ function AppContent() {
         <Route path="*" element={<NotFound />} />
       </Routes>
       
-      {isAdminRoute && navigationType === "menubar" && <AdminDock />}
+      {isAdminRoute && adminNavigationType === "menubar" && <AdminDock />}
       {isAdminRoute && <AdminMobileNav />}
+      {isStudentRoute && studentNavigationType === "menubar" && <StudentDock />}
       {isStudentRoute && <StudentMobileNav />}
     </>
   );

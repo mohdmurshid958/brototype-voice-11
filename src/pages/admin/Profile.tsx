@@ -43,30 +43,6 @@ export default function AdminProfile() {
           <div className="grid gap-6">
             <Card className="animate-fade-in">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  Navigation Preferences
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="navigation-mode">Use Bottom Navigation (Dock)</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Switch between sidebar and bottom navigation bar
-                    </p>
-                  </div>
-                  <Switch
-                    id="navigation-mode"
-                    checked={useMenubar}
-                    onCheckedChange={handleNavigationToggle}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="animate-fade-in">
-              <CardHeader>
                 <CardTitle>Personal Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -135,30 +111,54 @@ export default function AdminProfile() {
               </CardContent>
             </Card>
 
-            <Card className="animate-fade-in">
-              <CardHeader>
-                <CardTitle>Change Password</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4">
-                  <div>
-                    <Label htmlFor="currentPassword">Current Password</Label>
-                    <Input id="currentPassword" type="password" />
-                  </div>
-                  <div>
-                    <Label htmlFor="newPassword">New Password</Label>
-                    <Input id="newPassword" type="password" />
-                  </div>
-                  <div>
-                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <Input id="confirmPassword" type="password" />
-                  </div>
-                <Button className="w-full sm:w-fit">Update Password</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <Card className="animate-fade-in">
+            <CardHeader>
+              <CardTitle>Change Password</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                <div>
+                  <Label htmlFor="currentPassword">Current Password</Label>
+                  <Input id="currentPassword" type="password" />
+                </div>
+                <div>
+                  <Label htmlFor="newPassword">New Password</Label>
+                  <Input id="newPassword" type="password" />
+                </div>
+                <div>
+                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Input id="confirmPassword" type="password" />
+                </div>
+              <Button className="w-full sm:w-fit">Update Password</Button>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card className="animate-fade-in border-destructive/50">
+        <Card className="animate-fade-in">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Navigation Preferences
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="navigation-mode">Use Bottom Navigation (Dock)</Label>
+                <p className="text-sm text-muted-foreground">
+                  Switch between sidebar and bottom navigation bar
+                </p>
+              </div>
+              <Switch
+                id="navigation-mode"
+                checked={useMenubar}
+                onCheckedChange={handleNavigationToggle}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="animate-fade-in border-destructive/50">
             <CardHeader>
               <CardTitle className="text-destructive">Danger Zone</CardTitle>
             </CardHeader>
