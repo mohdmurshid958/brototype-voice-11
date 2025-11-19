@@ -2,10 +2,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { AdminNavigationProvider, useAdminNavigation } from "./contexts/AdminNavigationContext";
 import { StudentNavigationProvider, useStudentNavigation } from "./contexts/StudentNavigationContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Navbar } from "./components/Navbar";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -29,6 +30,29 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Protected route component
+function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: string }) {
+  const { user, userRole, loading } = useAuth();
+
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (requiredRole && userRole !== requiredRole) {
+    // Redirect to correct dashboard based on role
+    if (userRole === "admin") {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+    return <Navigate to="/student/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 function AppContent() {
   const location = useLocation();
   const { navigationType: adminNavigationType } = useAdminNavigation();
@@ -43,18 +67,23 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/student/dashboard" element={<StudentDashboard />} />
-        <Route path="/student/submit" element={<SubmitComplaint />} />
-        <Route path="/student/complaints" element={<StudentComplaints />} />
-        <Route path="/student/complaints/:id" element={<StudentComplaintDetail />} />
-        <Route path="/student/profile" element={<StudentProfile />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/complaints" element={<AdminComplaints />} />
-        <Route path="/admin/complaints/:id" element={<AdminComplaintDetail />} />
-        <Route path="/admin/analytics" element={<AdminAnalytics />} />
-        <Route path="/admin/users" element={<AdminUsers />} />
-        <Route path="/admin/categories" element={<AdminCategories />} />
-        <Route path="/admin/profile" element={<AdminProfile />} />
+        
+        {/* Student Routes */}
+        <Route path="/student/dashboard" element={<ProtectedRoute requiredRole="student"><StudentDashboard /></ProtectedRoute>} />
+        <Route path="/student/submit" element={<ProtectedRoute requiredRole="student"><SubmitComplaint /></ProtectedRoute>} />
+        <Route path="/student/complaints" element={<ProtectedRoute requiredRole="student"><StudentComplaints /></ProtectedRoute>} />
+        <Route path="/student/complaints/:id" element={<ProtectedRoute requiredRole="student"><StudentComplaintDetail /></ProtectedRoute>} />
+        <Route path="/student/profile" element={<ProtectedRoute requiredRole="student"><StudentProfile /></ProtectedRoute>} />
+        
+        {/* Admin Routes */}
+        <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/complaints" element={<ProtectedRoute requiredRole="admin"><AdminComplaints /></ProtectedRoute>} />
+        <Route path="/admin/complaints/:id" element={<ProtectedRoute requiredRole="admin"><AdminComplaintDetail /></ProtectedRoute>} />
+        <Route path="/admin/analytics" element={<ProtectedRoute requiredRole="admin"><AdminAnalytics /></ProtectedRoute>} />
+        <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><AdminUsers /></ProtectedRoute>} />
+        <Route path="/admin/categories" element={<ProtectedRoute requiredRole="admin"><AdminCategories /></ProtectedRoute>} />
+        <Route path="/admin/profile" element={<ProtectedRoute requiredRole="admin"><AdminProfile /></ProtectedRoute>} />
+        
         <Route path="*" element={<NotFound />} />
       </Routes>
       
@@ -73,11 +102,13 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AdminNavigationProvider>
-            <StudentNavigationProvider>
-              <AppContent />
-            </StudentNavigationProvider>
-          </AdminNavigationProvider>
+          <AuthProvider>
+            <AdminNavigationProvider>
+              <StudentNavigationProvider>
+                <AppContent />
+              </StudentNavigationProvider>
+            </AdminNavigationProvider>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
