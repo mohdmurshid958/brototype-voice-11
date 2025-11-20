@@ -8,27 +8,52 @@ import { Label } from "@/components/ui/label";
 import { Plus, Search, Edit, Trash2, FolderKanban } from "lucide-react";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/useCategories";
+import { useComplaints } from "@/hooks/useComplaints";
 
 export default function AdminCategories() {
   const isMobile = useIsMobile();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [categoryName, setCategoryName] = useState("");
   const [categoryColor, setCategoryColor] = useState("blue");
-  
-  const categories = [
-    { id: 1, name: "Infrastructure", count: 12, color: "blue" },
-    { id: 2, name: "Mentorship", count: 8, color: "purple" },
-    { id: 3, name: "Technical Issues", count: 15, color: "red" },
-    { id: 4, name: "Administrative", count: 6, color: "green" },
-    { id: 5, name: "Other", count: 7, color: "gray" },
-  ];
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const { data: categories, isLoading: categoriesLoading } = useCategories();
+  const { data: complaints } = useComplaints();
+  const createCategory = useCreateCategory();
+  const deleteCategory = useDeleteCategory();
 
   const handleAddCategory = () => {
-    console.log("Adding category:", { categoryName, categoryColor });
-    setIsDialogOpen(false);
-    setCategoryName("");
-    setCategoryColor("blue");
+    if (!categoryName.trim()) return;
+
+    createCategory.mutate(
+      {
+        name: categoryName,
+        color: categoryColor,
+      },
+      {
+        onSuccess: () => {
+          setIsDialogOpen(false);
+          setCategoryName("");
+          setCategoryColor("blue");
+        },
+      }
+    );
   };
+
+  const handleDeleteCategory = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this category?")) {
+      deleteCategory.mutate(id);
+    }
+  };
+
+  const getCategoryCount = (categoryName: string) => {
+    return complaints?.filter((c) => c.category === categoryName).length || 0;
+  };
+
+  const filteredCategories = categories?.filter((cat) =>
+    cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
   return (
     <div className="flex min-h-screen w-full">
@@ -77,104 +102,73 @@ export default function AdminCategories() {
                       <option value="purple">Purple</option>
                       <option value="red">Red</option>
                       <option value="green">Green</option>
+                      <option value="orange">Orange</option>
                       <option value="gray">Gray</option>
                     </select>
                   </div>
-                  <Button 
-                    onClick={handleAddCategory} 
+                  <Button
+                    onClick={handleAddCategory}
                     className="w-full hero-gradient"
-                    disabled={!categoryName}
+                    disabled={!categoryName || createCategory.isPending}
                   >
-                    Create Category
+                    {createCategory.isPending ? "Creating..." : "Create Category"}
                   </Button>
                 </div>
               </DialogContent>
             </Dialog>
           </div>
 
-          <Card className="p-4 md:p-6">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search categories..." className="pl-10" />
-              </div>
+          <Card className="p-4 md:p-6 mb-6">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search categories..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-
-            {isMobile ? (
-              <div className="space-y-3">
-                {categories.map((category) => (
-                  <Card key={category.id} className="p-4 hover:border-primary transition-colors animate-fade-in">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-base mb-2">{category.name}</h3>
-                        <Badge className={`bg-${category.color}-500/10 text-${category.color}-500`}>
-                          {category.count} complaints
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 mt-3">
-                      <Button variant="ghost" size="sm" className="flex-1">
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button variant="ghost" size="sm" className="text-destructive flex-1">
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {categories.map((category) => (
-                  <Card key={category.id} className="p-6 hover:border-primary transition-colors animate-fade-in">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="font-semibold text-lg mb-2">{category.name}</h3>
-                        <Badge className={`bg-${category.color}-500/10 text-${category.color}-500`}>
-                          {category.count} complaints
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 mt-4">
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button variant="ghost" size="sm" className="text-destructive">
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
           </Card>
 
-          <Card className="p-4 md:p-6 mt-6">
-            <h2 className="text-lg md:text-xl font-bold mb-4">Category Statistics</h2>
-            <div className="space-y-3 md:space-y-4">
-              {categories.map((category) => (
-                <div key={category.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full bg-${category.color}-500 flex-shrink-0`}></div>
-                    <span className="font-medium text-sm md:text-base">{category.name}</span>
-                  </div>
-                  <div className="flex items-center gap-3 md:gap-4 pl-6 sm:pl-0">
-                    <span className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">{category.count} complaints</span>
-                    <div className="flex-1 sm:w-24 md:w-32 bg-muted rounded-full h-2">
-                      <div
-                        className={`bg-${category.color}-500 h-2 rounded-full transition-all duration-300`}
-                        style={{ width: `${(category.count / 48) * 100}%` }}
-                      ></div>
+          {categoriesLoading ? (
+            <Card className="p-8 text-center">
+              <p className="text-muted-foreground">Loading categories...</p>
+            </Card>
+          ) : filteredCategories.length === 0 ? (
+            <Card className="p-8 text-center">
+              <p className="text-muted-foreground">No categories found</p>
+            </Card>
+          ) : (
+            <div className={isMobile ? "space-y-4" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"}>
+              {filteredCategories.map((category) => (
+                <Card key={category.id} className="p-4 hover:border-primary transition-colors">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg mb-1">{category.name}</h3>
+                      <Badge variant="secondary">{getCategoryCount(category.name)} complaints</Badge>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteCategory(category.id)}
+                        disabled={deleteCategory.isPending}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
                     </div>
                   </div>
-                </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div
+                      className={`w-3 h-3 rounded-full`}
+                      style={{ backgroundColor: category.color }}
+                    />
+                    <span className="capitalize">{category.color}</span>
+                  </div>
+                </Card>
               ))}
             </div>
-          </Card>
+          )}
         </div>
       </main>
     </div>
