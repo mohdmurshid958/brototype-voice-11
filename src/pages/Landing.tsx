@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MessageSquare, Send, Clock, CheckCircle, Shield, Bell, TrendingUp, Users, AlertCircle, FileText } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { MessageSquare, Send, Clock, CheckCircle, Shield, Bell, TrendingUp, Users, AlertCircle, FileText, Eye, PenTool } from "lucide-react";
 import { motion } from "framer-motion";
 import DisplayCards from "@/components/ui/display-cards";
 import { DottedSurface } from "@/components/ui/dotted-surface";
 import { CTASection } from "@/components/ui/cta-with-rectangle";
+import { AvatarCircles } from "@/components/ui/avatar-circles";
 
 export default function Landing() {
   const containerVariants = {
@@ -73,7 +75,7 @@ export default function Landing() {
 
             <motion.div 
               variants={itemVariants}
-              className="flex flex-col sm:flex-row gap-4 justify-center"
+              className="flex flex-col sm:flex-row gap-4 justify-center mb-10"
             >
               <Button size="lg" asChild className="hero-gradient text-lg h-14 px-10 hover:scale-105 transition-all shadow-lg hover:shadow-xl hover:shadow-primary/50">
                 <Link to="/student/dashboard">
@@ -85,15 +87,32 @@ export default function Landing() {
                 <Link to="/admin/dashboard">Admin Login</Link>
               </Button>
             </motion.div>
+
+            <motion.div 
+              variants={itemVariants}
+              className="flex flex-col items-center gap-4"
+            >
+              <AvatarCircles 
+                numPeople={500} 
+                avatarUrls={[
+                  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
+                  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
+                  "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop",
+                  "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=100&h=100&fit=crop",
+                ]}
+              />
+              <p className="text-sm text-muted-foreground">
+                Trusted by <span className="font-semibold text-primary">500+ students</span> at Brototype
+              </p>
+            </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section id="how-it-works" className="py-20 px-4 relative overflow-hidden bg-gradient-to-b from-background via-muted/30 to-background">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS1vcGFjaXR5PSIuMDUiIHN0cm9rZS13aWR0aD0iMiIvPjwvZz48L3N2Zz4=')] opacity-30 text-primary" />
-        
-        <div className="container mx-auto relative">
+      {/* How It Works Section */}
+      <section className="py-20 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background" />
+        <div className="container mx-auto relative z-10">
           <motion.div 
             className="text-center mb-16"
             initial={{ opacity: 0, y: 20 }}
@@ -101,70 +120,61 @@ export default function Landing() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">How It Works</h2>
-            <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto">A streamlined four-step process designed for efficiency and clarity</p>
+            <Badge variant="outline" className="mb-4">
+              <span className="text-primary">Simple Process</span>
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              How It Works
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Three simple steps to resolve your concerns efficiently
+            </p>
           </motion.div>
-
           <motion.div 
-            className="max-w-6xl mx-auto"
+            className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
             variants={containerVariants}
           >
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-              {[
-                { 
-                  icon: Send, 
-                  number: "01",
-                  title: "Submit Complaint", 
-                  desc: "File your complaint with detailed information and supporting evidence through our intuitive form" 
-                },
-                { 
-                  icon: Clock, 
-                  number: "02",
-                  title: "Admin Review", 
-                  desc: "Our dedicated admin team promptly reviews your submission and assesses priority levels" 
-                },
-                { 
-                  icon: MessageSquare, 
-                  number: "03",
-                  title: "Get Updates", 
-                  desc: "Receive timely responses and real-time status updates throughout the resolution process" 
-                },
-                { 
-                  icon: CheckCircle, 
-                  number: "04",
-                  title: "Track Resolution", 
-                  desc: "Monitor progress in real-time and get notified when your complaint is successfully resolved" 
-                },
-              ].map((step, i) => (
-                <motion.div key={i} variants={itemVariants} className="relative group">
-                  <Card className="p-6 h-full hover:shadow-2xl transition-all duration-500 border-border/50 hover:border-primary/50 relative overflow-hidden bg-card/80 backdrop-blur-sm">
-                    {/* Background gradient on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    
-                    {/* Step number */}
-                    <div className="absolute top-4 right-4 text-6xl font-bold text-primary/10 group-hover:text-primary/20 transition-colors duration-500">
-                      {step.number}
+            {[
+              { 
+                number: "01", 
+                title: "Submit Complaint", 
+                desc: "File your complaint with detailed information and supporting evidence through our intuitive form", 
+                icon: PenTool 
+              },
+              { 
+                number: "02", 
+                title: "Admin Review", 
+                desc: "Our dedicated admin team promptly reviews your submission and assesses priority levels", 
+                icon: Eye 
+              },
+              { 
+                number: "03", 
+                title: "Get Updates", 
+                desc: "Receive timely responses and real-time status updates throughout the resolution process", 
+                icon: CheckCircle 
+              },
+            ].map((step, i) => (
+              <motion.div key={i} variants={itemVariants}>
+                <div
+                  className="group relative p-8 rounded-2xl bg-card border border-border hover:border-primary transition-all duration-300 hover:shadow-lg hover:-translate-y-1 h-full"
+                >
+                  <div className="absolute -top-6 -right-6 text-9xl font-bold text-primary/50 group-hover:text-primary/60 transition-colors">
+                    {step.number}
+                  </div>
+                  <div className="relative z-10">
+                    <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
+                      <step.icon className="w-8 h-8 text-primary" />
                     </div>
-                    
-                    <div className="relative z-10">
-                      <div className="h-16 w-16 rounded-2xl hero-gradient flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 shadow-lg">
-                        <step.icon className="h-8 w-8 text-white" />
-                      </div>
-                      <h3 className="font-bold text-xl mb-3 group-hover:text-primary transition-colors duration-300">{step.title}</h3>
-                      <p className="text-muted-foreground text-sm leading-relaxed">{step.desc}</p>
-                    </div>
-
-                    {/* Connecting line (hidden on last item) */}
-                    {i < 3 && (
-                      <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-primary/50 to-transparent" />
-                    )}
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+                    <h3 className="text-2xl font-bold mb-3">{step.title}</h3>
+                    <p className="text-muted-foreground leading-relaxed">{step.desc}</p>
+                  </div>
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-primary/0 via-primary to-primary/0 scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+                </div>
+              </motion.div>
+            ))}
           </motion.div>
         </div>
       </section>
@@ -329,16 +339,15 @@ export default function Landing() {
 
       {/* CTA Section */}
       <CTASection
-        badge={{ text: "Get Started Today" }}
-        title="Ready to Get Started?"
-        description="Join the Brototype Complaint Portal — where your voice matters and gets heard. Submit, track, and resolve complaints effortlessly."
+        badge={{ text: "Get Started" }}
+        title="Ready to Resolve Your Concerns?"
+        description="Join thousands of students who have found solutions through our efficient complaint management system"
         action={{
-          text: "Get Started Now",
-          href: "/student/dashboard",
+          text: "Start Your Journey",
+          href: "/login",
           variant: "default"
         }}
         withGlow={true}
-        className="bg-gradient-to-br from-background via-muted/30 to-background"
       />
 
       {/* Footer */}
