@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Calendar, User, Tag, Send } from "lucide-react";
+import { ArrowLeft, Calendar, User, Tag, Send, Paperclip, ExternalLink } from "lucide-react";
 import { useComplaint, useComplaintResponses, useCreateComplaintResponse } from "@/hooks/useComplaints";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
@@ -124,6 +124,25 @@ export default function AdminComplaintDetail() {
                 <h3 className="font-semibold mb-2">Description</h3>
                 <p className="text-sm text-muted-foreground">{complaint.description}</p>
               </div>
+
+              {/* Attachment */}
+              {complaint.attachment_url && (
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <Paperclip className="h-4 w-4" />
+                    Attachment
+                  </h3>
+                  <a
+                    href={complaint.attachment_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-md transition-colors"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span className="text-sm font-medium">View Attachment</span>
+                  </a>
+                </div>
+              )}
 
               {/* Responses */}
               <div>

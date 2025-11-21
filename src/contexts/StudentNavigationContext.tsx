@@ -10,7 +10,7 @@ interface StudentNavigationContextType {
 const StudentNavigationContext = createContext<StudentNavigationContextType | undefined>(undefined);
 
 export function StudentNavigationProvider({ children }: { children: ReactNode }) {
-  const [navigationType, setNavigationType] = useState<NavigationType>("sidebar");
+  const [navigationType, setNavigationType] = useState<NavigationType>("menubar");
 
   return (
     <StudentNavigationContext.Provider value={{ navigationType, setNavigationType }}>

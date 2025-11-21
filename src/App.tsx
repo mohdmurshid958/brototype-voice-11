@@ -26,6 +26,7 @@ import { AdminDock } from "./components/AdminDock";
 import { AdminMobileNav } from "./components/AdminMobileNav";
 import { StudentDock } from "./components/StudentDock";
 import { StudentMobileNav } from "./components/StudentMobileNav";
+import { StudentMenubar } from "./components/StudentMenubar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -89,7 +90,8 @@ function AppContent() {
       
       {isAdminRoute && adminNavigationType === "menubar" && <AdminDock />}
       {isAdminRoute && <AdminMobileNav />}
-      {isStudentRoute && studentNavigationType === "menubar" && <StudentDock />}
+      {isStudentRoute && studentNavigationType === "menubar" && <StudentMenubar />}
+      {isStudentRoute && studentNavigationType === "sidebar" && <StudentDock />}
       {isStudentRoute && <StudentMobileNav />}
     </>
   );

@@ -7,7 +7,6 @@ import { motion } from "framer-motion";
 import DisplayCards from "@/components/ui/display-cards";
 import { DottedSurface } from "@/components/ui/dotted-surface";
 import { CTASection } from "@/components/ui/cta-with-rectangle";
-import { AvatarCircles } from "@/components/ui/avatar-circles";
 
 export default function Landing() {
   const containerVariants = {
@@ -90,18 +89,10 @@ export default function Landing() {
 
             <motion.div 
               variants={itemVariants}
-              className="flex flex-col items-center gap-4"
+              className="flex items-center justify-center gap-2 text-sm text-muted-foreground"
             >
-              <AvatarCircles 
-                numPeople={500} 
-                avatarUrls={[
-                  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop",
-                  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-                  "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop",
-                  "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=100&h=100&fit=crop",
-                ]}
-              />
-              <p className="text-sm text-muted-foreground">
+              <Users className="h-4 w-4 text-primary" />
+              <p>
                 Trusted by <span className="font-semibold text-primary">500+ students</span> at Brototype
               </p>
             </motion.div>

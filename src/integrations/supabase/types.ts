@@ -82,6 +82,7 @@ export type Database = {
       }
       complaints: {
         Row: {
+          attachment_url: string | null
           category: string
           created_at: string | null
           description: string
@@ -92,6 +93,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          attachment_url?: string | null
           category: string
           created_at?: string | null
           description: string
@@ -102,6 +104,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          attachment_url?: string | null
           category?: string
           created_at?: string | null
           description?: string
