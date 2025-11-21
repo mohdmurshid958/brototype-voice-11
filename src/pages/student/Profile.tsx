@@ -5,29 +5,127 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
-import { Camera, Settings, LogOut } from "lucide-react";
-import { useState } from "react";
+import { Settings, LogOut } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useStudentNavigation } from "@/contexts/StudentNavigationContext";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProfile, useUpdateProfile, useUpdatePassword } from "@/hooks/useProfile";
+import { useToast } from "@/hooks/use-toast";
 
 export default function StudentProfile() {
+  const { user, signOut } = useAuth();
+  const { data: profile, isLoading } = useProfile(user?.id || "");
+  const updateProfile = useUpdateProfile();
+  const updatePassword = useUpdatePassword();
   const { navigationType, setNavigationType } = useStudentNavigation();
   const [useMenubar, setUseMenubar] = useState(navigationType === "menubar");
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Update form when profile loads
+  useEffect(() => {
+    if (profile) {
+      setFullName(profile.full_name || "");
+      setEmail(profile.email || "");
+    }
+  }, [profile]);
 
   const handleNavigationToggle = (checked: boolean) => {
     setUseMenubar(checked);
     setNavigationType(checked ? "menubar" : "sidebar");
-    toast.success(checked ? "Switched to bottom navigation" : "Switched to sidebar navigation");
+    toast({
+      title: "Navigation updated",
+      description: checked ? "Switched to bottom navigation" : "Switched to sidebar navigation",
+    });
   };
 
-  const handleLogout = () => {
-    toast.success("Logged out successfully");
-    setTimeout(() => {
-      navigate("/login");
-    }, 500);
+  const handleSaveProfile = () => {
+    if (!user) return;
+    
+    updateProfile.mutate({
+      userId: user.id,
+      full_name: fullName,
+      email: email,
+    });
   };
+
+  const handleChangePassword = () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Please fill in all password fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New passwords don't match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updatePassword.mutate(
+      {
+        currentPassword,
+        newPassword,
+      },
+      {
+        onSuccess: () => {
+          setCurrentPassword("");
+          setNewPassword("");
+          setConfirmPassword("");
+        },
+      }
+    );
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
+      navigate("/login");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen w-full">
+        <StudentSidebar />
+        <main className="flex-1 p-8">
+          <p className="text-muted-foreground">Loading profile...</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full transition-navigation">
@@ -49,56 +147,46 @@ export default function StudentProfile() {
                 <div className="flex flex-col sm:flex-row items-start gap-6">
                   <div className="relative mx-auto sm:mx-0">
                     <Avatar className="h-24 w-24">
-                      <AvatarImage src="https://github.com/shadcn.png" />
-                      <AvatarFallback>JD</AvatarFallback>
+                      <AvatarImage src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id}`} />
+                      <AvatarFallback>{profile?.full_name?.charAt(0) || "U"}</AvatarFallback>
                     </Avatar>
-                    <Button size="icon" className="absolute bottom-0 right-0 h-8 w-8 rounded-full">
-                      <Camera className="h-4 w-4" />
-                    </Button>
                   </div>
                   <div className="flex-1 text-center sm:text-left">
-                    <h2 className="text-lg md:text-xl font-semibold mb-2">Profile Picture</h2>
+                    <h2 className="text-lg md:text-xl font-semibold mb-2">{profile?.full_name || "User"}</h2>
                     <p className="text-xs md:text-sm text-muted-foreground">
-                      Click the camera icon to upload a new profile picture
+                      {profile?.email}
                     </p>
                   </div>
                 </div>
 
                 <div className="grid gap-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input id="firstName" defaultValue="John" />
-                    </div>
-                    <div>
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input id="lastName" defaultValue="Doe" />
-                    </div>
+                  <div>
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input 
+                      id="fullName" 
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                    />
                   </div>
 
                   <div>
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" defaultValue="john.doe@brototype.com" />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" type="tel" defaultValue="+91 9876543210" />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="studentId">Student ID</Label>
-                    <Input id="studentId" defaultValue="BT2024001" disabled />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="batch">Batch</Label>
-                    <Input id="batch" defaultValue="MERN Stack - 2024" disabled />
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-4">
-                    <Button className="hero-gradient w-full sm:w-auto">Save Changes</Button>
-                    <Button variant="outline" className="w-full sm:w-auto">Cancel</Button>
+                    <Button 
+                      className="hero-gradient w-full sm:w-auto"
+                      onClick={handleSaveProfile}
+                      disabled={updateProfile.isPending}
+                    >
+                      {updateProfile.isPending ? "Saving..." : "Save Changes"}
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -112,17 +200,38 @@ export default function StudentProfile() {
                 <div className="grid gap-4">
                   <div>
                     <Label htmlFor="currentPassword">Current Password</Label>
-                    <Input id="currentPassword" type="password" />
+                    <Input 
+                      id="currentPassword" 
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="newPassword">New Password</Label>
-                    <Input id="newPassword" type="password" />
+                    <Input 
+                      id="newPassword" 
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <Input id="confirmPassword" type="password" />
+                    <Input 
+                      id="confirmPassword" 
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
                   </div>
-                  <Button className="w-full sm:w-fit">Update Password</Button>
+                  <Button 
+                    className="w-full sm:w-fit"
+                    onClick={handleChangePassword}
+                    disabled={updatePassword.isPending}
+                  >
+                    {updatePassword.isPending ? "Updating..." : "Update Password"}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
