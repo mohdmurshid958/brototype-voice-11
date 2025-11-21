@@ -9,6 +9,7 @@ export interface Complaint {
   description: string;
   category: string;
   status: string;
+  attachment_url?: string | null;
   created_at: string;
   updated_at: string;
   profiles?: {
@@ -111,6 +112,7 @@ export function useCreateComplaint() {
       description: string;
       category: string;
       user_id: string;
+      attachment_url?: string | null;
     }) => {
       const { data, error } = await supabase
         .from("complaints")

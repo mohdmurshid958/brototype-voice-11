@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, Upload, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateComplaint } from "@/hooks/useComplaints";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
 
 const categories = [
   "Infrastructure",
@@ -24,28 +26,95 @@ const categories = [
 export default function SubmitComplaint() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   const createComplaint = useCreateComplaint();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "File size must be less than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setAttachment(file);
+    }
+  };
+
+  const removeAttachment = () => {
+    setAttachment(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!user) return;
 
-    await createComplaint.mutateAsync({
-      title,
-      category,
-      description,
-      user_id: user.id,
-    });
+    if (!title || !category || !description) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // Reset form and navigate
-    setTitle("");
-    setCategory("");
-    setDescription("");
-    navigate("/student/complaints");
+    try {
+      setUploading(true);
+      let attachmentUrl = null;
+
+      // Upload attachment if present
+      if (attachment) {
+        const fileExt = attachment.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('complaint-attachments')
+          .upload(fileName, attachment);
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('complaint-attachments')
+          .getPublicUrl(fileName);
+
+        attachmentUrl = publicUrl;
+      }
+
+      await createComplaint.mutateAsync({
+        title,
+        category,
+        description,
+        user_id: user.id,
+        attachment_url: attachmentUrl,
+      });
+
+      // Reset form and navigate
+      setTitle("");
+      setCategory("");
+      setDescription("");
+      setAttachment(null);
+      navigate("/student/complaints");
+    } catch (error) {
+      console.error("Error submitting complaint:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit complaint. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -115,13 +184,49 @@ export default function SubmitComplaint() {
                   </p>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="attachment">Attachment (Optional)</Label>
+                  <div className="space-y-2">
+                    {!attachment ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="attachment"
+                          type="file"
+                          onChange={handleFileChange}
+                          accept="image/*,.pdf,.doc,.docx"
+                          className="cursor-pointer"
+                        />
+                        <Upload className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                        <span className="text-sm flex-1 truncate">{attachment.name}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={removeAttachment}
+                          className="h-8 w-8 p-0"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Supported formats: Images, PDF, DOC, DOCX (Max 5MB)
+                    </p>
+                  </div>
+                </div>
+
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <Button
                     type="submit"
                     className="flex-1"
-                    disabled={createComplaint.isPending}
+                    disabled={createComplaint.isPending || uploading}
                   >
-                    {createComplaint.isPending ? (
+                    {uploading ? (
+                      "Uploading..."
+                    ) : createComplaint.isPending ? (
                       "Submitting..."
                     ) : (
                       <>
@@ -134,7 +239,7 @@ export default function SubmitComplaint() {
                     type="button"
                     variant="outline"
                     onClick={() => navigate("/student/dashboard")}
-                    disabled={createComplaint.isPending}
+                    disabled={createComplaint.isPending || uploading}
                   >
                     Cancel
                   </Button>
