@@ -24,8 +24,10 @@ import AdminProfile from "./pages/admin/Profile";
 import AdminComplaintDetail from "./pages/admin/ComplaintDetail";
 import { AdminDock } from "./components/AdminDock";
 import { AdminMobileNav } from "./components/AdminMobileNav";
+import { AdminSidebar } from "./components/AdminSidebar";
 import { StudentDock } from "./components/StudentDock";
 import { StudentMobileNav } from "./components/StudentMobileNav";
+import { StudentSidebar } from "./components/StudentSidebar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,32 +62,40 @@ function AppContent() {
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isStudentRoute = location.pathname.startsWith('/student');
   const showNavbar = location.pathname === '/';
+  
+  const showAdminSidebar = isAdminRoute && adminNavigationType === "sidebar";
+  const showStudentSidebar = isStudentRoute && studentNavigationType === "sidebar";
 
   return (
     <>
       {showNavbar && <Navbar />}
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
+      <div className={showAdminSidebar || showStudentSidebar ? "flex min-h-screen w-full" : ""}>
+        {showAdminSidebar && <AdminSidebar />}
+        {showStudentSidebar && <StudentSidebar />}
         
-        {/* Student Routes */}
-        <Route path="/student/dashboard" element={<ProtectedRoute requiredRole="student"><StudentDashboard /></ProtectedRoute>} />
-        <Route path="/student/submit" element={<ProtectedRoute requiredRole="student"><SubmitComplaint /></ProtectedRoute>} />
-        <Route path="/student/complaints" element={<ProtectedRoute requiredRole="student"><StudentComplaints /></ProtectedRoute>} />
-        <Route path="/student/complaints/:id" element={<ProtectedRoute requiredRole="student"><StudentComplaintDetail /></ProtectedRoute>} />
-        <Route path="/student/profile" element={<ProtectedRoute requiredRole="student"><StudentProfile /></ProtectedRoute>} />
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          
+          {/* Student Routes */}
+          <Route path="/student/dashboard" element={<ProtectedRoute requiredRole="student"><StudentDashboard /></ProtectedRoute>} />
+          <Route path="/student/submit" element={<ProtectedRoute requiredRole="student"><SubmitComplaint /></ProtectedRoute>} />
+          <Route path="/student/complaints" element={<ProtectedRoute requiredRole="student"><StudentComplaints /></ProtectedRoute>} />
+          <Route path="/student/complaints/:id" element={<ProtectedRoute requiredRole="student"><StudentComplaintDetail /></ProtectedRoute>} />
+          <Route path="/student/profile" element={<ProtectedRoute requiredRole="student"><StudentProfile /></ProtectedRoute>} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/complaints" element={<ProtectedRoute requiredRole="admin"><AdminComplaints /></ProtectedRoute>} />
+          <Route path="/admin/complaints/:id" element={<ProtectedRoute requiredRole="admin"><AdminComplaintDetail /></ProtectedRoute>} />
+          <Route path="/admin/analytics" element={<ProtectedRoute requiredRole="admin"><AdminAnalytics /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><AdminUsers /></ProtectedRoute>} />
+          <Route path="/admin/categories" element={<ProtectedRoute requiredRole="admin"><AdminCategories /></ProtectedRoute>} />
+          <Route path="/admin/profile" element={<ProtectedRoute requiredRole="admin"><AdminProfile /></ProtectedRoute>} />
         
-        {/* Admin Routes */}
-        <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/admin/complaints" element={<ProtectedRoute requiredRole="admin"><AdminComplaints /></ProtectedRoute>} />
-        <Route path="/admin/complaints/:id" element={<ProtectedRoute requiredRole="admin"><AdminComplaintDetail /></ProtectedRoute>} />
-        <Route path="/admin/analytics" element={<ProtectedRoute requiredRole="admin"><AdminAnalytics /></ProtectedRoute>} />
-        <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><AdminUsers /></ProtectedRoute>} />
-        <Route path="/admin/categories" element={<ProtectedRoute requiredRole="admin"><AdminCategories /></ProtectedRoute>} />
-        <Route path="/admin/profile" element={<ProtectedRoute requiredRole="admin"><AdminProfile /></ProtectedRoute>} />
-        
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
       
       {isAdminRoute && adminNavigationType === "menubar" && <AdminDock />}
       {isAdminRoute && <AdminMobileNav />}

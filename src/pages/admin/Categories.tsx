@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/useCategories";
 import { useComplaints } from "@/hooks/useComplaints";
+import { Progress } from "@/components/ui/progress";
 
 export default function AdminCategories() {
   const isMobile = useIsMobile();
@@ -171,6 +172,12 @@ export default function AdminCategories() {
           )}
         </div>
       </main>
+      
+      {(categoriesLoading || createCategory.isPending || deleteCategory.isPending) && (
+        <div className="fixed bottom-0 left-0 right-0 z-50">
+          <Progress value={undefined} className="h-1 rounded-none" />
+        </div>
+      )}
     </div>
   );
 }
