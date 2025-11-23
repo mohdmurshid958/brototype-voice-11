@@ -27,36 +27,31 @@ export default function StudentComplaintDetail() {
 
   if (isLoading || responsesLoading) {
     return (
-      <div className="flex min-h-screen w-full">
-        <main className="flex-1 p-4 md:p-8 pb-24">
-          <div className="max-w-4xl mx-auto flex items-center justify-center">
-            <p>Loading complaint details...</p>
-          </div>
-        </main>
-      </div>
+      <main className="flex-1 p-4 md:p-8 pb-24 min-h-screen w-full">
+        <div className="max-w-4xl mx-auto flex items-center justify-center">
+          <p>Loading complaint details...</p>
+        </div>
+      </main>
     );
   }
 
   if (!complaint) {
     return (
-      <div className="flex min-h-screen w-full">
-        <main className="flex-1 p-4 md:p-8 pb-24">
-          <div className="max-w-4xl mx-auto">
-            <Card className="p-8 text-center">
-              <p className="text-muted-foreground">Complaint not found</p>
-              <Button onClick={() => navigate("/student/complaints")} className="mt-4">
-                Back to Complaints
-              </Button>
-            </Card>
-          </div>
-        </main>
-      </div>
+      <main className="flex-1 p-4 md:p-8 pb-24 min-h-screen w-full">
+        <div className="max-w-4xl mx-auto">
+          <Card className="p-8 text-center">
+            <p className="text-muted-foreground">Complaint not found</p>
+            <Button onClick={() => navigate("/student/complaints")} className="mt-4">
+              Back to Complaints
+            </Button>
+          </Card>
+        </div>
+      </main>
     );
   }
 
   return (
-    <div className="flex min-h-screen w-full">
-      <main className="flex-1 p-4 md:p-8 pb-24">
+    <main className="flex-1 p-4 md:p-8 pb-24 min-h-screen w-full">
         <div className="max-w-4xl mx-auto">
           <Button
             variant="ghost"
@@ -141,9 +136,8 @@ export default function StudentComplaintDetail() {
                 )}
               </div>
             </div>
-          </Card>
-        </div>
-      </main>
-    </div>
+        </Card>
+      </div>
+    </main>
   );
 }

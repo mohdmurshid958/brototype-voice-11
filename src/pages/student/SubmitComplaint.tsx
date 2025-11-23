@@ -117,8 +117,7 @@ export default function SubmitComplaint() {
   };
 
   return (
-    <div className="flex min-h-screen w-full">
-      <main className="flex-1 p-4 md:p-8 pb-24">
+    <main className="flex-1 p-4 md:p-8 pb-24 min-h-screen w-full">
         <div className="max-w-3xl mx-auto">
           <Button
             variant="ghost"
@@ -243,9 +242,8 @@ export default function SubmitComplaint() {
                 </div>
               </form>
             </div>
-          </Card>
-        </div>
-      </main>
-    </div>
+        </Card>
+      </div>
+    </main>
   );
 }

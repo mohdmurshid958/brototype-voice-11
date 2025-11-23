@@ -27,19 +27,16 @@ export default function StudentComplaints() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen w-full">
-        <main className="flex-1 p-4 md:p-8 pb-24">
-          <div className="max-w-7xl mx-auto flex items-center justify-center">
-            <p>Loading complaints...</p>
-          </div>
-        </main>
-      </div>
+      <main className="flex-1 p-4 md:p-8 pb-24 min-h-screen w-full">
+        <div className="max-w-7xl mx-auto flex items-center justify-center">
+          <p>Loading complaints...</p>
+        </div>
+      </main>
     );
   }
 
   return (
-    <div className="flex min-h-screen w-full">
-      <main className="flex-1 p-4 md:p-8 pb-24">
+    <main className="flex-1 p-4 md:p-8 pb-24 min-h-screen w-full">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl md:text-3xl font-bold mb-2">My Complaints</h1>
           <p className="text-muted-foreground mb-6 md:mb-8">View and track all your submitted complaints</p>
@@ -125,9 +122,8 @@ export default function StudentComplaints() {
                 </div>
               </Card>
             </>
-          )}
-        </div>
-      </main>
-    </div>
+        )}
+      </div>
+    </main>
   );
 }
