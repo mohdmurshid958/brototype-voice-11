@@ -127,8 +127,7 @@ export default function StudentProfile() {
   }
 
   return (
-    <div className="flex min-h-screen w-full transition-navigation">
-      <main className="flex-1 p-4 md:p-8 pb-24">
+    <main className="flex-1 p-4 md:p-8 pb-24 min-h-screen w-full transition-navigation">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6 md:mb-8 flex items-center justify-between">
             <div>
@@ -283,9 +282,8 @@ export default function StudentProfile() {
                 </div>
               </CardContent>
             </Card>
-          </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
