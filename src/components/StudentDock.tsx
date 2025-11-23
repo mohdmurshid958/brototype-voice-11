@@ -1,31 +1,41 @@
+import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, MessageSquare, PlusCircle, User } from "lucide-react";
-import { NavLink } from "./NavLink";
-import { Dock, DockIcon } from "./ui/dock";
+import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function StudentDock() {
+  const location = useLocation();
+  
+  const dockItems = [
+    { title: "Dashboard", icon: LayoutDashboard, href: "/student/dashboard" },
+    { title: "Complaints", icon: MessageSquare, href: "/student/complaints" },
+    { title: "Submit", icon: PlusCircle, href: "/student/submit" },
+    { title: "Profile", icon: User, href: "/student/profile" },
+  ];
+
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none hidden md:block">
-      <Dock className="pointer-events-auto">
-        <DockIcon>
-          <NavLink to="/student/dashboard" end>
-            <LayoutDashboard className="h-5 w-5" />
-          </NavLink>
-        </DockIcon>
-        <DockIcon>
-          <NavLink to="/student/complaints">
-            <MessageSquare className="h-5 w-5" />
-          </NavLink>
-        </DockIcon>
-        <DockIcon>
-          <NavLink to="/student/submit">
-            <PlusCircle className="h-5 w-5" />
-          </NavLink>
-        </DockIcon>
-        <DockIcon>
-          <NavLink to="/student/profile">
-            <User className="h-5 w-5" />
-          </NavLink>
-        </DockIcon>
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 hidden md:block">
+      <Dock className="items-end pb-3">
+        {dockItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.href;
+          return (
+            <Link key={item.href} to={item.href}>
+              <DockItem className={`aspect-square rounded-full ${isActive ? 'bg-primary' : 'bg-muted hover:bg-muted/80'}`}>
+                <DockLabel>{item.title}</DockLabel>
+                <DockIcon>
+                  <Icon className={`h-full w-full ${isActive ? 'text-primary-foreground' : 'text-foreground'}`} />
+                </DockIcon>
+              </DockItem>
+            </Link>
+          );
+        })}
+        <DockItem className="aspect-square rounded-full bg-muted hover:bg-muted/80">
+          <DockLabel>Theme</DockLabel>
+          <DockIcon>
+            <ThemeToggle />
+          </DockIcon>
+        </DockItem>
       </Dock>
     </div>
   );

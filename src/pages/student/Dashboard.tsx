@@ -1,4 +1,4 @@
-import { StudentSidebar } from "@/components/StudentSidebar";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Clock, CheckCircle, AlertCircle } from "lucide-react";
@@ -40,10 +40,8 @@ export default function StudentDashboard() {
   }, [complaints]);
 
   return (
-    <div className="flex min-h-screen">
-      <StudentSidebar />
-
-      <main className="flex-1 p-8">
+    <div className="flex min-h-screen w-full">
+      <main className="flex-1 p-8 pb-24">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <div>

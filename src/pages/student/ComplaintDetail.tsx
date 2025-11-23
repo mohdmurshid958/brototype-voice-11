@@ -1,5 +1,4 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { StudentSidebar } from "@/components/StudentSidebar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,9 +27,8 @@ export default function StudentComplaintDetail() {
 
   if (isLoading || responsesLoading) {
     return (
-      <div className="flex min-h-screen">
-        <StudentSidebar />
-        <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
+      <div className="flex min-h-screen w-full">
+        <main className="flex-1 p-4 md:p-8 pb-24">
           <div className="max-w-4xl mx-auto flex items-center justify-center">
             <p>Loading complaint details...</p>
           </div>
@@ -41,9 +39,8 @@ export default function StudentComplaintDetail() {
 
   if (!complaint) {
     return (
-      <div className="flex min-h-screen">
-        <StudentSidebar />
-        <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
+      <div className="flex min-h-screen w-full">
+        <main className="flex-1 p-4 md:p-8 pb-24">
           <div className="max-w-4xl mx-auto">
             <Card className="p-8 text-center">
               <p className="text-muted-foreground">Complaint not found</p>
@@ -58,10 +55,8 @@ export default function StudentComplaintDetail() {
   }
 
   return (
-    <div className="flex min-h-screen">
-      <StudentSidebar />
-
-      <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
+    <div className="flex min-h-screen w-full">
+      <main className="flex-1 p-4 md:p-8 pb-24">
         <div className="max-w-4xl mx-auto">
           <Button
             variant="ghost"
