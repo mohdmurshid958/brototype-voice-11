@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useUpdateProfile, useUpdatePassword } from "@/hooks/useProfile";
 import { toast } from "sonner";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function AdminProfile() {
   const { navigationType, setNavigationType } = useAdminNavigation();
@@ -100,9 +101,12 @@ export default function AdminProfile() {
 
       <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">Profile Settings</h1>
-            <p className="text-sm md:text-base text-muted-foreground">Manage your account settings and preferences</p>
+          <div className="mb-6 md:mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold mb-2">Profile Settings</h1>
+              <p className="text-sm md:text-base text-muted-foreground">Manage your account settings and preferences</p>
+            </div>
+            <ThemeToggle />
           </div>
 
           <div className="grid gap-6">

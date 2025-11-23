@@ -2,29 +2,32 @@ import { AdminSidebar } from "@/components/AdminSidebar";
 import { AdminDock } from "@/components/AdminDock";
 import { AdminMobileNav } from "@/components/AdminMobileNav";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, Area, AreaChart, PieChart, Pie, Label, XAxis, YAxis, CartesianGrid } from "recharts";
+import { BarChart, Bar, Area, AreaChart, PieChart, Pie, Label, XAxis, CartesianGrid } from "recharts";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TrendingUp } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useComplaintsByCategory, useComplaintsByStatus, useComplaintsTimeline } from "@/hooks/useAnalytics";
 
 export default function AdminAnalytics() {
   const [timeRange, setTimeRange] = useState("90d");
+  
+  const { data: categoryData = [], isLoading: categoryLoading } = useComplaintsByCategory();
+  const { data: statusData = [], isLoading: statusLoading } = useComplaintsByStatus();
+  const { data: timelineData = [], isLoading: timelineLoading } = useComplaintsTimeline();
 
-  const categoryData = [
-    { name: "Infrastructure", value: 15 },
-    { name: "Technical", value: 12 },
-    { name: "Mentorship", value: 8 },
-    { name: "Administrative", value: 10 },
-    { name: "Other", value: 3 },
-  ];
+  // Transform category data for chart
+  const chartCategoryData = categoryData.map((item) => ({
+    month: item.category.slice(0, 3),
+    desktop: item.count,
+  }));
 
-  const statusData = [
-    { status: "pending", complaints: 15, fill: "var(--chart-1)" },
-    { status: "inProgress", complaints: 8, fill: "var(--chart-2)" },
-    { status: "resolved", complaints: 30, fill: "var(--chart-3)" },
-    { status: "rejected", complaints: 3, fill: "var(--chart-4)" },
-  ];
+  // Transform status data for pie chart
+  const chartStatusData = statusData.map((item, index) => ({
+    status: item.status,
+    complaints: item.count,
+    fill: `hsl(var(--chart-${index + 1}))`,
+  }));
 
   const statusConfig = {
     complaints: {
@@ -49,102 +52,15 @@ export default function AdminAnalytics() {
   } satisfies ChartConfig;
 
   const totalComplaints = useMemo(() => {
-    return statusData.reduce((acc, curr) => acc + curr.complaints, 0);
-  }, []);
+    return chartStatusData.reduce((acc, curr) => acc + curr.complaints, 0);
+  }, [chartStatusData]);
 
-  const timelineData = [
-    { date: "2024-04-01", submitted: 222, resolved: 150 },
-    { date: "2024-04-02", submitted: 97, resolved: 180 },
-    { date: "2024-04-03", submitted: 167, resolved: 120 },
-    { date: "2024-04-04", submitted: 242, resolved: 260 },
-    { date: "2024-04-05", submitted: 373, resolved: 290 },
-    { date: "2024-04-06", submitted: 301, resolved: 340 },
-    { date: "2024-04-07", submitted: 245, resolved: 180 },
-    { date: "2024-04-08", submitted: 409, resolved: 320 },
-    { date: "2024-04-09", submitted: 59, resolved: 110 },
-    { date: "2024-04-10", submitted: 261, resolved: 190 },
-    { date: "2024-04-11", submitted: 327, resolved: 350 },
-    { date: "2024-04-12", submitted: 292, resolved: 210 },
-    { date: "2024-04-13", submitted: 342, resolved: 380 },
-    { date: "2024-04-14", submitted: 137, resolved: 220 },
-    { date: "2024-04-15", submitted: 120, resolved: 170 },
-    { date: "2024-04-16", submitted: 138, resolved: 190 },
-    { date: "2024-04-17", submitted: 446, resolved: 360 },
-    { date: "2024-04-18", submitted: 364, resolved: 410 },
-    { date: "2024-04-19", submitted: 243, resolved: 180 },
-    { date: "2024-04-20", submitted: 89, resolved: 150 },
-    { date: "2024-04-21", submitted: 137, resolved: 200 },
-    { date: "2024-04-22", submitted: 224, resolved: 170 },
-    { date: "2024-04-23", submitted: 138, resolved: 230 },
-    { date: "2024-04-24", submitted: 387, resolved: 290 },
-    { date: "2024-04-25", submitted: 215, resolved: 250 },
-    { date: "2024-04-26", submitted: 75, resolved: 130 },
-    { date: "2024-04-27", submitted: 383, resolved: 420 },
-    { date: "2024-04-28", submitted: 122, resolved: 180 },
-    { date: "2024-04-29", submitted: 315, resolved: 240 },
-    { date: "2024-04-30", submitted: 454, resolved: 380 },
-    { date: "2024-05-01", submitted: 165, resolved: 220 },
-    { date: "2024-05-02", submitted: 293, resolved: 310 },
-    { date: "2024-05-03", submitted: 247, resolved: 190 },
-    { date: "2024-05-04", submitted: 385, resolved: 420 },
-    { date: "2024-05-05", submitted: 481, resolved: 390 },
-    { date: "2024-05-06", submitted: 498, resolved: 520 },
-    { date: "2024-05-07", submitted: 388, resolved: 300 },
-    { date: "2024-05-08", submitted: 149, resolved: 210 },
-    { date: "2024-05-09", submitted: 227, resolved: 180 },
-    { date: "2024-05-10", submitted: 293, resolved: 330 },
-    { date: "2024-05-11", submitted: 335, resolved: 270 },
-    { date: "2024-05-12", submitted: 197, resolved: 240 },
-    { date: "2024-05-13", submitted: 197, resolved: 160 },
-    { date: "2024-05-14", submitted: 448, resolved: 490 },
-    { date: "2024-05-15", submitted: 473, resolved: 380 },
-    { date: "2024-05-16", submitted: 338, resolved: 400 },
-    { date: "2024-05-17", submitted: 499, resolved: 420 },
-    { date: "2024-05-18", submitted: 315, resolved: 350 },
-    { date: "2024-05-19", submitted: 235, resolved: 180 },
-    { date: "2024-05-20", submitted: 177, resolved: 230 },
-    { date: "2024-05-21", submitted: 82, resolved: 140 },
-    { date: "2024-05-22", submitted: 81, resolved: 120 },
-    { date: "2024-05-23", submitted: 252, resolved: 290 },
-    { date: "2024-05-24", submitted: 294, resolved: 220 },
-    { date: "2024-05-25", submitted: 201, resolved: 250 },
-    { date: "2024-05-26", submitted: 213, resolved: 170 },
-    { date: "2024-05-27", submitted: 420, resolved: 460 },
-    { date: "2024-05-28", submitted: 233, resolved: 190 },
-    { date: "2024-05-29", submitted: 78, resolved: 130 },
-    { date: "2024-05-30", submitted: 340, resolved: 280 },
-    { date: "2024-05-31", submitted: 178, resolved: 230 },
-    { date: "2024-06-01", submitted: 178, resolved: 200 },
-    { date: "2024-06-02", submitted: 470, resolved: 410 },
-    { date: "2024-06-03", submitted: 103, resolved: 160 },
-    { date: "2024-06-04", submitted: 439, resolved: 380 },
-    { date: "2024-06-05", submitted: 88, resolved: 140 },
-    { date: "2024-06-06", submitted: 294, resolved: 250 },
-    { date: "2024-06-07", submitted: 323, resolved: 370 },
-    { date: "2024-06-08", submitted: 385, resolved: 320 },
-    { date: "2024-06-09", submitted: 438, resolved: 480 },
-    { date: "2024-06-10", submitted: 155, resolved: 200 },
-    { date: "2024-06-11", submitted: 92, resolved: 150 },
-    { date: "2024-06-12", submitted: 492, resolved: 420 },
-    { date: "2024-06-13", submitted: 81, resolved: 130 },
-    { date: "2024-06-14", submitted: 426, resolved: 380 },
-    { date: "2024-06-15", submitted: 307, resolved: 350 },
-    { date: "2024-06-16", submitted: 371, resolved: 310 },
-    { date: "2024-06-17", submitted: 475, resolved: 520 },
-    { date: "2024-06-18", submitted: 107, resolved: 170 },
-    { date: "2024-06-19", submitted: 341, resolved: 290 },
-    { date: "2024-06-20", submitted: 408, resolved: 450 },
-    { date: "2024-06-21", submitted: 169, resolved: 210 },
-    { date: "2024-06-22", submitted: 317, resolved: 270 },
-    { date: "2024-06-23", submitted: 480, resolved: 530 },
-    { date: "2024-06-24", submitted: 132, resolved: 180 },
-    { date: "2024-06-25", submitted: 141, resolved: 190 },
-    { date: "2024-06-26", submitted: 434, resolved: 380 },
-    { date: "2024-06-27", submitted: 448, resolved: 490 },
-    { date: "2024-06-28", submitted: 149, resolved: 200 },
-    { date: "2024-06-29", submitted: 103, resolved: 160 },
-    { date: "2024-06-30", submitted: 446, resolved: 400 },
-  ];
+  const chartConfig = {
+    desktop: {
+      label: "Complaints",
+      color: "hsl(217, 91%, 60%)",
+    },
+  } satisfies ChartConfig;
 
   const timelineConfig = {
     complaints: {
@@ -152,27 +68,42 @@ export default function AdminAnalytics() {
     },
     submitted: {
       label: "Submitted",
-      color: "hsl(var(--chart-1))",
+      color: "hsl(217, 91%, 60%)",
     },
     resolved: {
       label: "Resolved",
-      color: "hsl(var(--chart-2))",
+      color: "hsl(217, 91%, 75%)",
     },
   } satisfies ChartConfig;
 
-  const filteredData = timelineData.filter((item) => {
-    const date = new Date(item.date);
-    const referenceDate = new Date("2024-06-30");
-    let daysToSubtract = 90;
-    if (timeRange === "30d") {
-      daysToSubtract = 30;
-    } else if (timeRange === "7d") {
-      daysToSubtract = 7;
-    }
-    const startDate = new Date(referenceDate);
-    startDate.setDate(startDate.getDate() - daysToSubtract);
-    return date >= startDate;
-  });
+  const filteredData = useMemo(() => {
+    return timelineData.filter((item) => {
+      const date = new Date(item.date);
+      const now = new Date();
+      let daysToSubtract = 90;
+      if (timeRange === "30d") {
+        daysToSubtract = 30;
+      } else if (timeRange === "7d") {
+        daysToSubtract = 7;
+      }
+      const startDate = new Date(now);
+      startDate.setDate(startDate.getDate() - daysToSubtract);
+      return date >= startDate;
+    });
+  }, [timelineData, timeRange]);
+
+  if (categoryLoading || statusLoading || timelineLoading) {
+    return (
+      <div className="flex min-h-screen w-full">
+        <AdminSidebar />
+        <AdminMobileNav />
+        <AdminDock />
+        <main className="flex-1 p-4 md:p-8 pb-24 md:pb-24 bg-background">
+          <p className="text-muted-foreground">Loading analytics...</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full">
@@ -186,23 +117,39 @@ export default function AdminAnalytics() {
           <p className="text-sm md:text-base text-muted-foreground mb-6 md:mb-8">Visualize complaint trends and metrics</p>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Complaints by Category */}
-            <Card className="p-6">
-              <CardHeader className="p-0 pb-4">
+            {/* Complaints by Category - Bar Chart */}
+            <Card>
+              <CardHeader>
                 <CardTitle>Complaints by Category</CardTitle>
-                <CardDescription>Distribution across different categories</CardDescription>
+                <CardDescription>January - June 2024</CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
-                <ChartContainer config={{ value: { label: "Complaints" } }} className="h-[300px]">
-                  <BarChart data={categoryData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="name" stroke="hsl(var(--foreground))" />
-                    <YAxis stroke="hsl(var(--foreground))" />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+              <CardContent>
+                <ChartContainer config={chartConfig}>
+                  <BarChart accessibilityLayer data={chartCategoryData}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                      dataKey="month"
+                      tickLine={false}
+                      tickMargin={10}
+                      axisLine={false}
+                      tickFormatter={(value) => value.slice(0, 3)}
+                    />
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent hideLabel />}
+                    />
+                    <Bar dataKey="desktop" fill="var(--color-desktop)" radius={8} />
                   </BarChart>
                 </ChartContainer>
               </CardContent>
+              <CardFooter className="flex-col items-start gap-2 text-sm">
+                <div className="flex gap-2 leading-none font-medium">
+                  Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+                </div>
+                <div className="text-muted-foreground leading-none">
+                  Showing total complaints for the last 6 months
+                </div>
+              </CardFooter>
             </Card>
 
             {/* Status Distribution - Donut Chart */}
@@ -222,7 +169,7 @@ export default function AdminAnalytics() {
                       content={<ChartTooltipContent hideLabel />}
                     />
                     <Pie
-                      data={statusData}
+                      data={chartStatusData}
                       dataKey="complaints"
                       nameKey="status"
                       innerRadius={60}
