@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useUpdateProfile, useUpdatePassword } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function StudentProfile() {
   const { user, signOut } = useAuth();
@@ -129,9 +130,12 @@ export default function StudentProfile() {
     <div className="flex min-h-screen w-full transition-navigation">
       <main className="flex-1 p-4 md:p-8 pb-24">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">Profile Settings</h1>
-            <p className="text-sm md:text-base text-muted-foreground">Manage your account information</p>
+          <div className="mb-6 md:mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold mb-2">Profile Settings</h1>
+              <p className="text-sm md:text-base text-muted-foreground">Manage your account information</p>
+            </div>
+            <ThemeToggle />
           </div>
 
           <div className="grid gap-6">
