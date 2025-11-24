@@ -20,27 +20,51 @@ import {
 import { useStreamVideo } from "@/hooks/useStreamVideo";
 import { useVideoCalls } from "@/hooks/useVideoCalls";
 import { StreamVideoProvider } from "@/components/StreamVideoProvider";
+import { supabase } from "@/integrations/supabase/client";
 
 const VideoCallContent = () => {
   const navigate = useNavigate();
-  const { callId } = useParams();
+  const { callId } = useParams(); // This is now the database UUID
   const { client, isLoading: isClientLoading } = useStreamVideo();
   const { updateCallStatus } = useVideoCalls();
   const [call, setCall] = useState<any>(null);
   const [isJoining, setIsJoining] = useState(false);
   const [callStartTime] = useState(Date.now());
+  const [streamCallId, setStreamCallId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!client || !callId) return;
+    // Fetch the stream_call_id from database using the callId (UUID)
+    const fetchCallData = async () => {
+      if (!callId) return;
+      
+      const { data, error } = await supabase
+        .from('video_calls')
+        .select('stream_call_id')
+        .eq('id', callId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching call data:', error);
+        return;
+      }
+
+      setStreamCallId(data.stream_call_id);
+    };
+
+    fetchCallData();
+  }, [callId]);
+
+  useEffect(() => {
+    if (!client || !streamCallId || !callId) return;
 
     const initCall = async () => {
       setIsJoining(true);
       try {
-        const newCall = client.call('default', callId);
+        const newCall = client.call('default', streamCallId);
         await newCall.join({ create: true });
         setCall(newCall);
         
-        // Update call status to active
+        // Update call status to active using database UUID
         await updateCallStatus(callId, 'active');
       } catch (error) {
         console.error('Error joining call:', error);
@@ -58,7 +82,7 @@ const VideoCallContent = () => {
         call.leave();
       }
     };
-  }, [client, callId]);
+  }, [client, streamCallId, callId]);
 
   const handleEndCall = async () => {
     if (call && callId) {
