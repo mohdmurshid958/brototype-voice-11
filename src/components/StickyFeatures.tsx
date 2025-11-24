@@ -60,16 +60,17 @@ export function StickyFeatures() {
 
         scrollTimeout.current = setTimeout(() => {
           if (e.deltaY > 0 && currentFeatureIndex < features.length - 1) {
-            // Scrolling down
+            // Scrolling down - still have features to show
             e.preventDefault();
             setCurrentFeatureIndex(prev => prev + 1);
             lastScrollTime.current = now;
           } else if (e.deltaY < 0 && currentFeatureIndex > 0) {
-            // Scrolling up
+            // Scrolling up - still have features to show
             e.preventDefault();
             setCurrentFeatureIndex(prev => prev - 1);
             lastScrollTime.current = now;
           }
+          // If at first feature scrolling up, or last feature scrolling down, allow normal scroll
         }, 50);
       }
     };
