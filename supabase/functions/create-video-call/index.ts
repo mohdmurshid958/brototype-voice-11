@@ -30,22 +30,21 @@ serve(async (req) => {
       throw new Error('Not authenticated');
     }
 
-    const { adminId } = await req.json();
-
-    if (!adminId) {
-      throw new Error('Admin ID is required');
-    }
+    const { adminId, studentId } = await req.json();
 
     // Generate unique call ID
     const streamCallId = `call_${user.id}_${Date.now()}`;
 
+    // Determine who is calling whom
+    const isAdminCalling = studentId !== undefined;
+    
     // Create video call record
     const { data: videoCall, error: callError } = await supabaseClient
       .from('video_calls')
       .insert({
         stream_call_id: streamCallId,
-        student_id: user.id,
-        admin_id: adminId,
+        student_id: isAdminCalling ? studentId : user.id,
+        admin_id: isAdminCalling ? user.id : adminId || null,
         status: 'pending',
       })
       .select()

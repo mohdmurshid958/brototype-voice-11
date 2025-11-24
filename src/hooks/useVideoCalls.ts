@@ -42,11 +42,11 @@ export const useVideoCalls = () => {
     }
   };
 
-  const createCall = async (adminId: string) => {
+  const createCall = async (adminId?: string, studentId?: string) => {
     try {
       const { data, error } = await supabase.functions
         .invoke('create-video-call', {
-          body: { adminId },
+          body: { adminId, studentId },
         });
 
       if (error) throw error;
