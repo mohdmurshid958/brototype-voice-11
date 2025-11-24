@@ -29,6 +29,8 @@ import { StudentDock } from "./components/StudentDock";
 import { StudentMobileNav } from "./components/StudentMobileNav";
 import { StudentSidebar } from "./components/StudentSidebar";
 import NotFound from "./pages/NotFound";
+import PrivacyPolicy from "./pages/privacy-policy";
+import TermsConditions from "./pages/terms-conditions";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +78,8 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-conditions" element={<TermsConditions />} />
           
           {/* Student Routes */}
           <Route path="/student/dashboard" element={<ProtectedRoute requiredRole="student"><StudentDashboard /></ProtectedRoute>} />
