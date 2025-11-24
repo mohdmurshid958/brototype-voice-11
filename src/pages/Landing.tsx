@@ -347,8 +347,19 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-border">
-        <div className="container mx-auto text-center text-muted-foreground">
-          <p>© 2025 Brototype. All rights reserved.</p>
+        <div className="container mx-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-muted-foreground text-sm">
+            <p>© 2025 Brototype. All rights reserved.</p>
+            <div className="flex items-center gap-4">
+              <Link to="/privacy-policy" className="hover:text-primary transition-colors">
+                Privacy Policy
+              </Link>
+              <span className="text-border">|</span>
+              <Link to="/terms-conditions" className="hover:text-primary transition-colors">
+                Terms & Conditions
+              </Link>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
