@@ -16,6 +16,7 @@ import {
   CallControls,
   SpeakerLayout,
   CallParticipantsList,
+  StreamCall,
 } from '@stream-io/video-react-sdk';
 import { useStreamVideo } from "@/hooks/useStreamVideo";
 import { useVideoCalls } from "@/hooks/useVideoCalls";
@@ -119,19 +120,21 @@ const VideoCallContent = () => {
 
   return (
     <StreamVideoProvider client={client}>
-      <div className="fixed inset-0 bg-black flex flex-col">
-        {/* Main Video Area */}
-        <div className="flex-1 relative">
-          <SpeakerLayout />
-        </div>
+      <StreamCall call={call}>
+        <div className="fixed inset-0 bg-black flex flex-col">
+          {/* Main Video Area */}
+          <div className="flex-1 relative">
+            <SpeakerLayout />
+          </div>
 
-        {/* Bottom Control Bar */}
-        <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-6">
-          <div className="max-w-3xl mx-auto">
-            <CallControls onLeave={handleEndCall} />
+          {/* Bottom Control Bar */}
+          <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-6">
+            <div className="max-w-3xl mx-auto">
+              <CallControls onLeave={handleEndCall} />
+            </div>
           </div>
         </div>
-      </div>
+      </StreamCall>
     </StreamVideoProvider>
   );
 };
