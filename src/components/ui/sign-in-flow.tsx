@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { GoogleIcon } from "@/components/GoogleIcon";
+import { useToast } from "@/hooks/use-toast";
 
 type Uniforms = {
   [key: string]: {
@@ -28,6 +30,7 @@ interface SignInPageProps {
   onSubmit: (email: string, password: string, name?: string) => void;
   isSignup?: boolean;
   onToggleMode?: () => void;
+  onGoogleSignIn?: () => Promise<void>;
 }
 
 export const CanvasRevealEffect = ({
@@ -336,7 +339,7 @@ const Shader: React.FC<ShaderProps> = ({ source, uniforms, maxFps = 60 }) => {
   );
 };
 
-export const SignInFlow = ({ className, onSubmit, isSignup = false, onToggleMode }: SignInPageProps) => {
+export const SignInFlow = ({ className, onSubmit, isSignup = false, onToggleMode, onGoogleSignIn }: SignInPageProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -345,6 +348,8 @@ export const SignInFlow = ({ className, onSubmit, isSignup = false, onToggleMode
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [initialCanvasVisible, setInitialCanvasVisible] = useState(true);
   const [reverseCanvasVisible, setReverseCanvasVisible] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const { toast } = useToast();
 
   const signupMessages = [
     "Connecting db....",
@@ -366,6 +371,22 @@ export const SignInFlow = ({ className, onSubmit, isSignup = false, onToggleMode
       setLoadingMessages(isSignup ? signupMessages : loginMessages);
       setCurrentMessageIndex(0);
       setStep("loading");
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (!onGoogleSignIn) return;
+    
+    setIsGoogleLoading(true);
+    try {
+      await onGoogleSignIn();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to sign in with Google",
+        variant: "destructive",
+      });
+      setIsGoogleLoading(false);
     }
   };
 
@@ -447,6 +468,32 @@ export const SignInFlow = ({ className, onSubmit, isSignup = false, onToggleMode
                   </div>
                   
                   <div className="space-y-4">
+                    {onGoogleSignIn && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={handleGoogleSignIn}
+                          disabled={isGoogleLoading}
+                          className="w-full backdrop-blur-[1px] bg-background/5 text-foreground border border-border rounded-full py-3 px-4 hover:bg-primary/10 transition-all duration-200 flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isGoogleLoading ? (
+                            <div className="w-5 h-5 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <GoogleIcon className="w-5 h-5" />
+                          )}
+                          <span className="text-base font-medium">
+                            {isGoogleLoading ? "Connecting..." : "Continue with Google"}
+                          </span>
+                        </button>
+                        
+                        <div className="relative flex items-center gap-3 py-2">
+                          <div className="flex-1 h-px bg-border"></div>
+                          <span className="text-sm text-muted-foreground">or continue with email</span>
+                          <div className="flex-1 h-px bg-border"></div>
+                        </div>
+                      </>
+                    )}
+                    
                     <form onSubmit={handleFormSubmit} className="space-y-4">
                       {isSignup && (
                         <div className="relative">
