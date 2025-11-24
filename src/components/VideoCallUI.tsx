@@ -47,13 +47,21 @@ export const VideoCallUI = ({ onLeave }: VideoCallUIProps) => {
   useEffect(() => {
     if (!call) return;
     
-    // Get initial states
-    const updateStates = () => {
-      setIsMicOn(call.microphone.state.status === 'enabled');
-      setIsCameraOn(call.camera.state.status === 'enabled');
+    // Initialize call with audio enabled by default
+    const initializeCall = async () => {
+      try {
+        // Ensure microphone is enabled
+        if (call.microphone.state.status !== 'enabled') {
+          await call.microphone.enable();
+        }
+        setIsMicOn(call.microphone.state.status === 'enabled');
+        setIsCameraOn(call.camera.state.status === 'enabled');
+      } catch (error) {
+        console.error("Error initializing call:", error);
+      }
     };
     
-    updateStates();
+    initializeCall();
 
     // Listen for speaking events
     const handleDominantSpeakerChange = () => {
@@ -137,10 +145,17 @@ export const VideoCallUI = ({ onLeave }: VideoCallUIProps) => {
       <div className="flex-1 relative p-4">
         {/* Screen Share View (Priority) */}
         {screenShareParticipant && (
-          <div className="absolute inset-4 bg-black rounded-lg overflow-hidden z-10">
-            <ParticipantView
-              participant={screenShareParticipant}
-              ParticipantViewUI={null}
+          <div className="absolute inset-4 bg-black rounded-lg overflow-hidden z-10 flex items-center justify-center">
+            <video
+              ref={(video) => {
+                if (video && screenShareParticipant.screenShareStream) {
+                  video.srcObject = screenShareParticipant.screenShareStream;
+                  video.play();
+                }
+              }}
+              className="w-full h-full object-contain"
+              autoPlay
+              playsInline
             />
             <div className="absolute top-4 left-4 bg-black/80 px-4 py-2 rounded-full">
               <span className="text-white text-sm font-medium flex items-center gap-2">
@@ -169,10 +184,27 @@ export const VideoCallUI = ({ onLeave }: VideoCallUIProps) => {
                     isSpeaking(participant.sessionId) && "ring-4 ring-primary ring-offset-2 ring-offset-background animate-pulse"
                   )}
                 >
-                  <ParticipantView
-                    participant={participant}
-                    ParticipantViewUI={null}
+                  <video
+                    ref={(video) => {
+                      if (video && participant.videoStream) {
+                        video.srcObject = participant.videoStream;
+                        video.play();
+                      }
+                    }}
+                    className="w-full h-full object-cover"
+                    autoPlay
+                    playsInline
+                    muted
                   />
+                  {!participant.videoStream && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                      <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center">
+                        <span className="text-4xl font-semibold text-primary">
+                          {(participant.name || "G")[0].toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   <div className="absolute bottom-4 left-4 bg-black/60 px-3 py-1.5 rounded-full flex items-center gap-2">
                     <span className="text-white text-sm font-medium">
                       {participant.name || "Guest"}
@@ -202,16 +234,43 @@ export const VideoCallUI = ({ onLeave }: VideoCallUIProps) => {
             "absolute bottom-24 right-8 w-64 h-48 bg-muted rounded-lg overflow-hidden shadow-xl border-2 transition-all duration-300",
             isSpeaking(localParticipant.sessionId) ? "border-primary ring-2 ring-primary" : "border-border"
           )}>
-            <ParticipantView
-              participant={localParticipant}
-              ParticipantViewUI={null}
+            <video
+              ref={(video) => {
+                if (video && localParticipant.videoStream) {
+                  video.srcObject = localParticipant.videoStream;
+                  video.play();
+                }
+              }}
+              className="w-full h-full object-cover"
+              autoPlay
+              playsInline
+              muted
             />
+            {!localParticipant.videoStream && (
+              <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span className="text-2xl font-semibold text-primary">
+                    {(localParticipant.name || "Y")[0].toUpperCase()}
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="absolute top-2 left-2 bg-black/60 px-2 py-1 rounded-full flex items-center gap-2">
               <span className="text-white text-xs font-medium">You</span>
               {isSpeaking(localParticipant.sessionId) && (
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
               )}
             </div>
+            {!isMicOn && (
+              <div className="absolute top-2 right-2 bg-red-500/80 p-1.5 rounded-full">
+                <MicOff className="w-3 h-3 text-white" />
+              </div>
+            )}
+            {!isCameraOn && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/80">
+                <VideoOff className="w-8 h-8 text-white" />
+              </div>
+            )}
           </div>
         )}
       </div>

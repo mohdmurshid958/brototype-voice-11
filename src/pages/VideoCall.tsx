@@ -49,6 +49,10 @@ const VideoCallContent = () => {
       try {
         const newCall = client.call('default', streamCallId);
         await newCall.join({ create: true });
+        
+        // Enable microphone by default (audio-only mode support)
+        await newCall.microphone.enable();
+        
         setCall(newCall);
         
         // Update call status to active using database UUID
