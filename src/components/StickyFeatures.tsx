@@ -99,13 +99,14 @@ export function StickyFeatures() {
           {/* LEFT: Scrollable Content */}
           <div 
             ref={contentRef}
-            className="h-[80vh] overflow-y-scroll snap-y snap-mandatory scroll-smooth pr-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent"
+            className="h-[40vh] overflow-y-scroll snap-y snap-mandatory scroll-smooth scrollbar-hide"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {features.map((feature, index) => (
               <div
                 key={index}
                 data-feature-index={index}
-                className="h-[80vh] snap-start flex flex-col justify-center p-8 bg-surface-elevated rounded-2xl mb-0 border border-border/50"
+                className="h-[40vh] snap-start flex flex-col justify-center p-8 mb-0"
               >
                 <div className="w-16 h-16 mb-6 rounded-2xl bg-primary/10 flex items-center justify-center">
                   <feature.icon className="h-8 w-8 text-primary" />
@@ -120,7 +121,7 @@ export function StickyFeatures() {
 
           {/* RIGHT: Sticky Image */}
           <div className="hidden lg:block">
-            <div className="sticky top-20 h-[80vh] bg-muted rounded-2xl overflow-hidden shadow-2xl">
+            <div className="sticky top-20 h-[40vh] bg-muted rounded-2xl overflow-hidden shadow-2xl">
               <img
                 src={activeImage}
                 alt="Feature visualization"
