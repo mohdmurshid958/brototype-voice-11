@@ -30,6 +30,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { VideoCallChat } from "./VideoCallChat";
 import { VirtualBackgroundSelector } from "./VirtualBackgroundSelector";
 import { CallRecordingControls } from "./CallRecordingControls";
+import { ReactionPicker } from "./ReactionPicker";
 
 interface VideoCallUIProps {
   onLeave: () => void;
@@ -48,8 +49,10 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [showReactions, setShowReactions] = useState(false);
   const [virtualBackground, setVirtualBackground] = useState<string | null>(null);
   const [speakingParticipants, setSpeakingParticipants] = useState<Set<string>>(new Set());
+  const [reactions, setReactions] = useState<Array<{id: string, emoji: string, x: number, y: number}>>([]);
 
   useEffect(() => {
     if (!call) return;
@@ -79,9 +82,13 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
         }
       });
       setSpeakingParticipants(speaking);
+      
+      // Check for screen sharing in real-time
+      const isAnyoneSharing = participants.some(p => p.screenShareStream !== undefined);
+      setIsScreenSharing(isAnyoneSharing);
     };
 
-    // Set up interval to check speaking status
+    // Set up interval to check speaking status and screen sharing
     const interval = setInterval(handleDominantSpeakerChange, 200);
 
     return () => clearInterval(interval);
@@ -430,6 +437,22 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
             </SheetContent>
           </Sheet>
 
+          {/* Reaction Picker */}
+          <ReactionPicker 
+            onReactionSend={(emoji) => {
+              const newReaction = {
+                id: Math.random().toString(),
+                emoji,
+                x: Math.random() * 80 + 10,
+                y: Math.random() * 60 + 20
+              };
+              setReactions(prev => [...prev, newReaction]);
+              setTimeout(() => {
+                setReactions(prev => prev.filter(r => r.id !== newReaction.id));
+              }, 3000);
+            }}
+          />
+
           {/* End Call */}
           <Button
             onClick={onLeave}
@@ -452,13 +475,27 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
         
         {remoteParticipants.length > 0 && (
           <div className="bg-black/80 px-4 py-2 rounded-full flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             <span className="text-white text-sm font-medium">
               Connected with {remoteParticipants[0].name || "Guest"}
             </span>
           </div>
         )}
       </div>
+
+      {/* Reactions Overlay */}
+      {reactions.map((reaction) => (
+        <div
+          key={reaction.id}
+          className="absolute z-40 text-6xl animate-reaction pointer-events-none"
+          style={{
+            left: `${reaction.x}%`,
+            top: `${reaction.y}%`,
+          }}
+        >
+          {reaction.emoji}
+        </div>
+      ))}
     </div>
   );
 };
