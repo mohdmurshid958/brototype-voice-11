@@ -12,7 +12,7 @@ export function BrotalSection() {
       {/* Bottom gradient */}
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-primary/20 via-primary/10 to-transparent pointer-events-none" />
       
-      <div className="container mx-auto px-4 flex items-start justify-center relative z-10 mt-8 sm:mt-12 md:mt-16">
+      <div className="container mx-auto px-4 flex items-start justify-center relative z-10 mt-16 sm:mt-20 md:mt-24 lg:mt-28">
         <h2 
           className="text-[140px] sm:text-[200px] md:text-[280px] lg:text-[360px] font-bold text-muted-foreground/60 tracking-tight leading-none"
           style={{
