@@ -122,10 +122,13 @@ export const VideoCallUI = ({ onLeave }: VideoCallUIProps) => {
     }
   };
 
-  // Find screen sharing participant
+  // Find screen sharing participant - check screen share stream
   const screenShareParticipant = participants.find(
     (p) => p.screenShareStream !== undefined
   );
+  
+  // Get the actual screen share stream
+  const screenShareStream = screenShareParticipant?.screenShareStream;
 
   // Check if participant is speaking
   const isSpeaking = (sessionId: string) => speakingParticipants.has(sessionId);
@@ -144,13 +147,14 @@ export const VideoCallUI = ({ onLeave }: VideoCallUIProps) => {
       {/* Main Video Area */}
       <div className="flex-1 relative p-4">
         {/* Screen Share View (Priority) */}
-        {screenShareParticipant && (
+        {screenShareParticipant && screenShareStream && (
           <div className="absolute inset-4 bg-black rounded-lg overflow-hidden z-10 flex items-center justify-center">
             <video
+              key={`screen-${screenShareParticipant.sessionId}`}
               ref={(video) => {
-                if (video && screenShareParticipant.screenShareStream) {
-                  video.srcObject = screenShareParticipant.screenShareStream;
-                  video.play();
+                if (video && screenShareStream) {
+                  video.srcObject = screenShareStream;
+                  video.play().catch(e => console.error("Screen share play error:", e));
                 }
               }}
               className="w-full h-full object-contain"
@@ -185,10 +189,11 @@ export const VideoCallUI = ({ onLeave }: VideoCallUIProps) => {
                   )}
                 >
                   <video
+                    key={`video-${participant.sessionId}`}
                     ref={(video) => {
                       if (video && participant.videoStream) {
                         video.srcObject = participant.videoStream;
-                        video.play();
+                        video.play().catch(e => console.error("Video play error:", e));
                       }
                     }}
                     className="w-full h-full object-cover"
