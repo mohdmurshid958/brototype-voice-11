@@ -10,9 +10,10 @@ import { useState, useEffect } from "react";
 import { useAdminNavigation } from "@/contexts/AdminNavigationContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile, useUpdateProfile, useUpdatePassword } from "@/hooks/useProfile";
+import { useProfile, useUpdateProfile, useUpdatePassword, useUploadAvatar } from "@/hooks/useProfile";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useRef } from "react";
 
 export default function AdminProfile() {
   const { navigationType, setNavigationType } = useAdminNavigation();
@@ -23,6 +24,8 @@ export default function AdminProfile() {
   const { data: profile, isLoading } = useProfile(user?.id || "");
   const updateProfile = useUpdateProfile();
   const updatePassword = useUpdatePassword();
+  const uploadAvatar = useUploadAvatar();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -78,6 +81,29 @@ export default function AdminProfile() {
     );
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image size must be less than 2MB");
+      return;
+    }
+
+    uploadAvatar.mutate({ userId: user.id, file });
+  };
+
   const handleLogout = async () => {
     await signOut();
     toast.success("Logged out successfully");
@@ -123,14 +149,26 @@ export default function AdminProfile() {
                         {profile?.full_name?.charAt(0).toUpperCase() || "A"}
                       </AvatarFallback>
                     </Avatar>
-                    <Button size="icon" className="absolute bottom-0 right-0 h-8 w-8 rounded-full">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      className="hidden"
+                    />
+                    <Button 
+                      size="icon" 
+                      className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
+                      onClick={handleAvatarClick}
+                      disabled={uploadAvatar.isPending}
+                    >
                       <Camera className="h-4 w-4" />
                     </Button>
                   </div>
                   <div className="flex-1 text-center sm:text-left">
                     <h2 className="text-lg md:text-xl font-semibold mb-2">Profile Picture</h2>
                     <p className="text-xs md:text-sm text-muted-foreground">
-                      Click the camera icon to upload a new profile picture
+                      Click the camera icon to upload a new profile picture (Max 2MB)
                     </p>
                   </div>
                 </div>

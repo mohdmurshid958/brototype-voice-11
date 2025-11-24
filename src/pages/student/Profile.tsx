@@ -9,19 +9,23 @@ import { useState, useEffect } from "react";
 import { useStudentNavigation } from "@/contexts/StudentNavigationContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile, useUpdateProfile, useUpdatePassword } from "@/hooks/useProfile";
+import { useProfile, useUpdateProfile, useUpdatePassword, useUploadAvatar } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Camera } from "lucide-react";
+import { useRef } from "react";
 
 export default function StudentProfile() {
   const { user, signOut } = useAuth();
   const { data: profile, isLoading } = useProfile(user?.id || "");
   const updateProfile = useUpdateProfile();
   const updatePassword = useUpdatePassword();
+  const uploadAvatar = useUploadAvatar();
   const { navigationType, setNavigationType } = useStudentNavigation();
   const [useMenubar, setUseMenubar] = useState(navigationType === "menubar");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -99,6 +103,37 @@ export default function StudentProfile() {
     );
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Error",
+        description: "Please upload an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "Error",
+        description: "Image size must be less than 2MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    uploadAvatar.mutate({ userId: user.id, file });
+  };
+
   const handleLogout = async () => {
     try {
       await signOut();
@@ -149,11 +184,29 @@ export default function StudentProfile() {
                       <AvatarImage src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id}`} />
                       <AvatarFallback>{profile?.full_name?.charAt(0) || "U"}</AvatarFallback>
                     </Avatar>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      className="hidden"
+                    />
+                    <Button 
+                      size="icon" 
+                      className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
+                      onClick={handleAvatarClick}
+                      disabled={uploadAvatar.isPending}
+                    >
+                      <Camera className="h-4 w-4" />
+                    </Button>
                   </div>
                   <div className="flex-1 text-center sm:text-left">
                     <h2 className="text-lg md:text-xl font-semibold mb-2">{profile?.full_name || "User"}</h2>
                     <p className="text-xs md:text-sm text-muted-foreground">
                       {profile?.email}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Click the camera icon to upload (Max 2MB)
                     </p>
                   </div>
                 </div>
