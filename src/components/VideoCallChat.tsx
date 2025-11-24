@@ -3,9 +3,10 @@ import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import io from "socket.io-client";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -26,9 +27,70 @@ export const VideoCallChat = ({ callId }: VideoCallChatProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<any>(null);
+  const [senderName, setSenderName] = useState<string>("");
 
   useEffect(() => {
-    // Fetch existing messages with user profile info
+    // Fetch user profile info
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+      
+      setSenderName(profileData?.full_name || "Unknown User");
+    };
+
+    fetchUserProfile();
+
+    // Connect to Socket.IO
+    const projectId = "vlqyebuhvebsvpdtqlxq";
+    const socketUrl = `wss://${projectId}.supabase.co/functions/v1/video-call-socket?callId=${callId}`;
+    
+    console.log("Connecting to WebSocket:", socketUrl);
+    
+    socketRef.current = io(socketUrl, {
+      transports: ["websocket"],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+
+    socketRef.current.on("connect", () => {
+      console.log("Socket.IO connected");
+    });
+
+    socketRef.current.on("disconnect", () => {
+      console.log("Socket.IO disconnected");
+    });
+
+    socketRef.current.on("message", (data: any) => {
+      console.log("Message received via Socket.IO:", data);
+      
+      const newMessage: Message = {
+        id: data.id,
+        user_id: data.user_id,
+        message: data.message,
+        created_at: data.created_at,
+        sender_name: data.sender_name,
+      };
+      
+      setMessages((prev) => [...prev, newMessage]);
+    });
+
+    socketRef.current.on("connect_error", (error: any) => {
+      console.error("Socket.IO connection error:", error);
+      toast({
+        title: "Connection Error",
+        description: "Failed to connect to chat server",
+        variant: "destructive",
+      });
+    });
+
+    // Fetch existing messages
     const fetchMessages = async () => {
       const { data: messagesData, error } = await supabase
         .from("video_call_messages")
@@ -42,7 +104,6 @@ export const VideoCallChat = ({ callId }: VideoCallChatProps) => {
       }
 
       if (messagesData) {
-        // Fetch user profiles for all unique user IDs
         const userIds = [...new Set(messagesData.map(msg => msg.user_id))];
         const { data: profilesData } = await supabase
           .from("profiles")
@@ -64,43 +125,12 @@ export const VideoCallChat = ({ callId }: VideoCallChatProps) => {
 
     fetchMessages();
 
-    // Subscribe to new messages in real-time
-    const channel = supabase
-      .channel(`call-messages-${callId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "video_call_messages",
-          filter: `call_id=eq.${callId}`,
-        },
-        async (payload) => {
-          console.log("New message received:", payload);
-          
-          // Fetch sender profile info
-          const { data: profileData } = await supabase
-            .from("profiles")
-            .select("full_name")
-            .eq("id", payload.new.user_id)
-            .single();
-          
-          const newMessage = {
-            ...payload.new,
-            sender_name: profileData?.full_name || "Unknown User"
-          } as Message;
-          
-          setMessages((prev) => [...prev, newMessage]);
-        }
-      )
-      .subscribe((status) => {
-        console.log("Subscription status:", status);
-      });
-
     return () => {
-      supabase.removeChannel(channel);
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
     };
-  }, [callId]);
+  }, [callId, user, toast]);
 
   useEffect(() => {
     // Auto-scroll to bottom
@@ -110,9 +140,20 @@ export const VideoCallChat = ({ callId }: VideoCallChatProps) => {
   }, [messages]);
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !user) return;
+    if (!newMessage.trim() || !user || !socketRef.current) return;
 
     setSending(true);
+    
+    const messageData = {
+      id: crypto.randomUUID(),
+      call_id: callId,
+      user_id: user.id,
+      message: newMessage.trim(),
+      created_at: new Date().toISOString(),
+      sender_name: senderName,
+    };
+
+    // Save to database
     const { error } = await supabase.from("video_call_messages").insert({
       call_id: callId,
       user_id: user.id,
@@ -120,14 +161,21 @@ export const VideoCallChat = ({ callId }: VideoCallChatProps) => {
     });
 
     if (error) {
+      console.error("Error saving message:", error);
       toast({
         title: "Error",
         description: "Failed to send message",
         variant: "destructive",
       });
-    } else {
-      setNewMessage("");
+      setSending(false);
+      return;
     }
+
+    // Emit via Socket.IO
+    socketRef.current.emit("message", messageData);
+    console.log("Message sent via Socket.IO:", messageData);
+    
+    setNewMessage("");
     setSending(false);
   };
 

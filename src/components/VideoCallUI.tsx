@@ -18,6 +18,7 @@ import {
   WifiOff,
   MessageSquare,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -43,6 +44,7 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
   const participants = useParticipants();
   const localParticipant = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
+  const { toast } = useToast();
 
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);
@@ -125,24 +127,41 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
   const toggleScreenShare = async () => {
     if (!call) return;
     try {
-      if (isScreenSharing) {
+      const currentState = call.screenShare.state.status;
+      console.log("Current screen share state:", currentState);
+      
+      if (currentState === 'enabled') {
         await call.screenShare.disable();
+        console.log("Screen share disabled");
+        setIsScreenSharing(false);
       } else {
         await call.screenShare.enable();
+        console.log("Screen share enabled");
+        setIsScreenSharing(true);
       }
-      setIsScreenSharing(!isScreenSharing);
     } catch (error) {
       console.error("Error toggling screen share:", error);
+      toast({
+        title: "Screen Share Error",
+        description: "Failed to toggle screen sharing. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
-  // Find screen sharing participant - check screen share stream
+  // Find screen sharing participant
   const screenShareParticipant = participants.find(
-    (p) => p.screenShareStream !== undefined
+    (p) => p.screenShareStream !== undefined && p.screenShareStream !== null
   );
   
-  // Get the actual screen share stream
   const screenShareStream = screenShareParticipant?.screenShareStream;
+  
+  useEffect(() => {
+    if (screenShareParticipant) {
+      console.log("Screen share detected from:", screenShareParticipant.name, screenShareParticipant);
+      console.log("Screen share stream:", screenShareStream);
+    }
+  }, [screenShareParticipant, screenShareStream]);
 
   // Check if participant is speaking
   const isSpeaking = (sessionId: string) => speakingParticipants.has(sessionId);
