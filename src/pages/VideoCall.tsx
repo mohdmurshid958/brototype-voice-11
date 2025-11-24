@@ -1,27 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  Video,
-  VideoOff,
-  Mic,
-  MicOff,
-  Phone,
-  Monitor,
-  Loader2,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  useCall,
-  useCallStateHooks,
-  CallControls,
-  SpeakerLayout,
-  CallParticipantsList,
-  StreamCall,
-} from '@stream-io/video-react-sdk';
+import { StreamCall } from '@stream-io/video-react-sdk';
 import { useStreamVideo } from "@/hooks/useStreamVideo";
 import { useVideoCalls } from "@/hooks/useVideoCalls";
 import { StreamVideoProvider } from "@/components/StreamVideoProvider";
 import { supabase } from "@/integrations/supabase/client";
+import { VideoCallUI } from "@/components/VideoCallUI";
 
 const VideoCallContent = () => {
   const navigate = useNavigate();
@@ -121,19 +107,7 @@ const VideoCallContent = () => {
   return (
     <StreamVideoProvider client={client}>
       <StreamCall call={call}>
-        <div className="fixed inset-0 bg-black flex flex-col">
-          {/* Main Video Area */}
-          <div className="flex-1 relative">
-            <SpeakerLayout />
-          </div>
-
-          {/* Bottom Control Bar */}
-          <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-6">
-            <div className="max-w-3xl mx-auto">
-              <CallControls onLeave={handleEndCall} />
-            </div>
-          </div>
-        </div>
+        <VideoCallUI onLeave={handleEndCall} />
       </StreamCall>
     </StreamVideoProvider>
   );
