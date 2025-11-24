@@ -29,7 +29,7 @@ export const useStreamVideo = () => {
         const { data: tokenData, error: tokenError } = await supabase.functions
           .invoke('generate-stream-token');
 
-        if (tokenError) {
+        if (tokenError || !tokenData) {
           console.error('Error generating token:', tokenError);
           toast({
             title: 'Error',
@@ -40,8 +40,6 @@ export const useStreamVideo = () => {
           return;
         }
 
-        const apiKey = import.meta.env.VITE_GETSTREAM_API_KEY || 'mmhfdzb5evj2';
-
         const streamUser: StreamUser = {
           id: user.id,
           name: profile?.full_name || user.email || 'User',
@@ -49,7 +47,7 @@ export const useStreamVideo = () => {
         };
 
         const videoClient = new StreamVideoClient({
-          apiKey,
+          apiKey: tokenData.apiKey,
           user: streamUser,
           token: tokenData.token,
         });

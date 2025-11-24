@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Video, Search, Plus, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Video, Search, Plus, Loader2, Phone, PhoneOff, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -9,13 +9,120 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { useVideoCalls } from "@/hooks/useVideoCalls";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { toast as sonnerToast } from "sonner";
 
 const Chat = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const { calls, isLoading, createCall } = useVideoCalls();
+  const [profiles, setProfiles] = useState<Record<string, any>>({});
+  const { calls, isLoading, createCall, updateCallStatus } = useVideoCalls();
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchProfiles();
+  }, [calls]);
+
+  useEffect(() => {
+    const setupRealtimeSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const channel = supabase
+        .channel('student_incoming_calls')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'video_calls',
+            filter: `status=eq.pending,student_id=eq.${user.id}`,
+          },
+          async (payload) => {
+            const call = payload.new as any;
+            
+            // Fetch admin profile
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('full_name, avatar_url')
+              .eq('id', call.admin_id)
+              .single();
+
+            const adminName = profile?.full_name || 'Admin';
+
+            sonnerToast(
+              <div className="flex items-center gap-3 w-full">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={profile?.avatar_url} />
+                  <AvatarFallback>{adminName.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="font-semibold">{adminName} is calling</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={async () => {
+                      await updateCallStatus(call.id, 'active');
+                      navigate(`/video-call/${call.stream_call_id}`);
+                      sonnerToast.dismiss();
+                    }}
+                  >
+                    <Phone className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-red-600 hover:bg-red-700"
+                    onClick={async () => {
+                      await updateCallStatus(call.id, 'cancelled');
+                      sonnerToast.dismiss();
+                    }}
+                  >
+                    <PhoneOff className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>,
+              {
+                duration: 30000,
+                position: 'bottom-center',
+              }
+            );
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    };
+
+    setupRealtimeSubscription();
+  }, [navigate, updateCallStatus]);
+
+  const fetchProfiles = async () => {
+    const userIds = [...new Set(calls.map(c => c.admin_id).filter(Boolean))];
+    if (userIds.length === 0) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', userIds);
+
+      if (error) throw error;
+
+      const profileMap = data.reduce((acc, profile) => {
+        acc[profile.id] = profile;
+        return acc;
+      }, {} as Record<string, any>);
+
+      setProfiles(profileMap);
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
+    }
+  };
 
   const handleStartCall = async () => {
     setIsCreating(true);

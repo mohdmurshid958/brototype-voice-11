@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Video, Search, Check, X, Loader2, Calendar, Phone } from "lucide-react";
+import { Video, Search, Check, X, Loader2, Calendar, Phone, PhoneOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -58,24 +58,24 @@ const Chat = () => {
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  variant="default"
+                  className="bg-green-600 hover:bg-green-700"
                   onClick={async () => {
                     await updateCallStatus(call.id, 'active');
                     navigate(`/video-call/${call.stream_call_id}`);
                     toast.dismiss();
                   }}
                 >
-                  <Check className="h-4 w-4" />
+                  <Phone className="h-4 w-4" />
                 </Button>
                 <Button
                   size="sm"
-                  variant="destructive"
+                  className="bg-red-600 hover:bg-red-700"
                   onClick={async () => {
                     await updateCallStatus(call.id, 'cancelled');
                     toast.dismiss();
                   }}
                 >
-                  <X className="h-4 w-4" />
+                  <PhoneOff className="h-4 w-4" />
                 </Button>
               </div>
             </div>,
