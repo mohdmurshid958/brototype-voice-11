@@ -8,8 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TrendingUp } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useComplaintsByCategory, useComplaintsByStatus, useComplaintsTimeline } from "@/hooks/useAnalytics";
-import { useCategories } from "@/hooks/useCategories";
-import { Progress } from "@/components/ui/progress";
 
 export default function AdminAnalytics() {
   const [timeRange, setTimeRange] = useState("90d");
@@ -17,7 +15,6 @@ export default function AdminAnalytics() {
   const { data: categoryData = [], isLoading: categoryLoading } = useComplaintsByCategory();
   const { data: statusData = [], isLoading: statusLoading } = useComplaintsByStatus();
   const { data: timelineData = [], isLoading: timelineLoading } = useComplaintsTimeline();
-  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
 
   // Transform category data for chart
   const chartCategoryData = categoryData.map((item) => ({
@@ -95,24 +92,7 @@ export default function AdminAnalytics() {
     });
   }, [timelineData, timeRange]);
 
-  // Combine categories with their complaint counts
-  const categoryStats = useMemo(() => {
-    return categories.map(category => {
-      const categoryCount = categoryData.find(c => c.category === category.name);
-      return {
-        id: category.id,
-        name: category.name,
-        color: category.color,
-        count: categoryCount?.count || 0
-      };
-    }).sort((a, b) => b.count - a.count);
-  }, [categories, categoryData]);
-
-  const maxCategoryCount = useMemo(() => {
-    return Math.max(...categoryStats.map(c => c.count), 1);
-  }, [categoryStats]);
-
-  if (categoryLoading || statusLoading || timelineLoading || categoriesLoading) {
+  if (categoryLoading || statusLoading || timelineLoading) {
     return (
       <div className="flex min-h-screen w-full">
         <AdminSidebar />
@@ -347,43 +327,6 @@ export default function AdminAnalytics() {
                 </AreaChart>
               </ChartContainer>
             </CardContent>
-          </Card>
-
-          {/* Category Statistics */}
-          <Card className="p-4 md:p-6 mt-6">
-            <h2 className="text-lg md:text-xl font-bold mb-4">Category Statistics</h2>
-            <div className="space-y-3 md:space-y-4">
-              {categoryStats.map((category) => (
-                <div key={category.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: category.color }}
-                    />
-                    <span className="font-medium text-sm md:text-base">{category.name}</span>
-                  </div>
-                  <div className="flex items-center gap-3 md:gap-4 pl-6 sm:pl-0">
-                    <span className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">
-                      {category.count} {category.count === 1 ? 'complaint' : 'complaints'}
-                    </span>
-                    <div className="flex-1 sm:w-24 md:w-32">
-                      <Progress 
-                        value={(category.count / maxCategoryCount) * 100}
-                        className="h-2"
-                        style={{
-                          ['--progress-background' as string]: category.color
-                        } as React.CSSProperties}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {categoryStats.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No category data available yet
-                </p>
-              )}
-            </div>
           </Card>
         </div>
       </main>
