@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, User, Tag } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ArrowLeft, Calendar, User, Tag, Paperclip, Eye } from "lucide-react";
 import { useComplaint, useComplaintResponses } from "@/hooks/useComplaints";
 import { format } from "date-fns";
 
@@ -11,6 +13,7 @@ export default function StudentComplaintDetail() {
   const { id } = useParams();
   const { data: complaint, isLoading } = useComplaint(id!);
   const { data: responses, isLoading: responsesLoading } = useComplaintResponses(id!);
+  const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -94,6 +97,40 @@ export default function StudentComplaintDetail() {
                   {complaint.description}
                 </p>
               </div>
+
+              {/* Attachment */}
+              {complaint.attachment_url && (
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <Paperclip className="h-4 w-4" />
+                    Attachment
+                  </h3>
+                  <Button
+                    variant="outline"
+                    onClick={() => setAttachmentDialogOpen(true)}
+                    className="inline-flex items-center gap-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span className="text-sm font-medium">View Attachment</span>
+                  </Button>
+                </div>
+              )}
+
+              {/* Attachment Dialog */}
+              <Dialog open={attachmentDialogOpen} onOpenChange={setAttachmentDialogOpen}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                  <DialogHeader>
+                    <DialogTitle>Attachment</DialogTitle>
+                  </DialogHeader>
+                  <div className="flex items-center justify-center bg-muted/30 rounded-lg p-4">
+                    <img 
+                      src={complaint.attachment_url} 
+                      alt="Complaint attachment" 
+                      className="max-w-full h-auto rounded-md"
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
 
               {/* Responses Timeline */}
               <div className="space-y-4">
