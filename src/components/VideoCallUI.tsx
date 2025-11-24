@@ -75,26 +75,39 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
     
     initializeCall();
 
-    // Listen for speaking events
-    const handleDominantSpeakerChange = () => {
+    // Listen for speaking events and screen share changes
+    const handleParticipantUpdates = () => {
       const speaking = new Set<string>();
+      let hasScreenShare = false;
+      
       participants.forEach((p) => {
         if (p.isDominantSpeaker || p.isSpeaking) {
           speaking.add(p.sessionId);
         }
+        
+        // Check if this participant has an active screen share
+        if (p.screenShareStream && p.screenShareStream.active) {
+          hasScreenShare = true;
+          console.log("Active screen share detected from:", p.name, p.sessionId);
+        }
       });
+      
       setSpeakingParticipants(speaking);
       
-      // Check for screen sharing in real-time
-      const isAnyoneSharing = participants.some(p => p.screenShareStream !== undefined);
-      setIsScreenSharing(isAnyoneSharing);
+      // Update local screen sharing state based on own screen share status
+      if (call.screenShare) {
+        const myScreenShareActive = call.screenShare.state.status === 'enabled';
+        if (myScreenShareActive !== isScreenSharing) {
+          setIsScreenSharing(myScreenShareActive);
+        }
+      }
     };
 
-    // Set up interval to check speaking status and screen sharing
-    const interval = setInterval(handleDominantSpeakerChange, 200);
+    // Set up interval to check updates
+    const interval = setInterval(handleParticipantUpdates, 200);
 
     return () => clearInterval(interval);
-  }, [call, participants]);
+  }, [call, participants, isScreenSharing]);
 
   const toggleMicrophone = async () => {
     if (!call) return;
@@ -149,17 +162,32 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
     }
   };
 
-  // Find screen sharing participant
+  // Find screen sharing participant - check for active screen share stream
   const screenShareParticipant = participants.find(
-    (p) => p.screenShareStream !== undefined && p.screenShareStream !== null
+    (p) => {
+      const hasStream = p.screenShareStream && p.screenShareStream.active;
+      if (hasStream) {
+        console.log("Found screen share from:", p.name, p.sessionId);
+      }
+      return hasStream;
+    }
   );
   
   const screenShareStream = screenShareParticipant?.screenShareStream;
   
   useEffect(() => {
-    if (screenShareParticipant) {
-      console.log("Screen share detected from:", screenShareParticipant.name, screenShareParticipant);
-      console.log("Screen share stream:", screenShareStream);
+    if (screenShareParticipant && screenShareStream) {
+      console.log("Screen share active:", {
+        participant: screenShareParticipant.name,
+        sessionId: screenShareParticipant.sessionId,
+        streamId: screenShareStream.id,
+        active: screenShareStream.active,
+        tracks: screenShareStream.getTracks().map(t => ({
+          kind: t.kind,
+          enabled: t.enabled,
+          readyState: t.readyState
+        }))
+      });
     }
   }, [screenShareParticipant, screenShareStream]);
 
@@ -181,24 +209,64 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
       <div className="flex-1 relative p-4">
         {/* Screen Share View (Priority) */}
         {screenShareParticipant && screenShareStream && (
-          <div className="absolute inset-4 bg-black rounded-lg overflow-hidden z-10 flex items-center justify-center">
+          <div className="absolute inset-4 bg-black rounded-lg overflow-hidden z-10">
             <video
-              key={`screen-${screenShareParticipant.sessionId}`}
-              ref={(video) => {
-                if (video && screenShareStream) {
-                  video.srcObject = screenShareStream;
-                  video.play().catch(e => console.error("Screen share play error:", e));
+              key={`screen-${screenShareParticipant.sessionId}-${screenShareStream.id}`}
+              ref={(videoElement) => {
+                if (videoElement && screenShareStream) {
+                  console.log("Setting screen share stream to video element");
+                  videoElement.srcObject = screenShareStream;
+                  videoElement.play()
+                    .then(() => console.log("Screen share video playing"))
+                    .catch(e => {
+                      console.error("Screen share play error:", e);
+                      // Try to play again after a short delay
+                      setTimeout(() => {
+                        videoElement.play().catch(err => console.error("Retry failed:", err));
+                      }, 500);
+                    });
                 }
               }}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain bg-black"
               autoPlay
               playsInline
+              muted={false}
             />
-            <div className="absolute top-4 left-4 bg-black/80 px-4 py-2 rounded-full">
+            <div className="absolute top-4 left-4 bg-black/90 px-4 py-2 rounded-full shadow-lg">
               <span className="text-white text-sm font-medium flex items-center gap-2">
                 <Monitor className="w-4 h-4" />
-                {screenShareParticipant.name || "Guest"} is sharing
+                {screenShareParticipant.name || "Guest"} is presenting
               </span>
+            </div>
+            
+            {/* Small participant thumbnails when screen sharing */}
+            <div className="absolute bottom-4 right-4 flex gap-2 z-20">
+              {participants.slice(0, 3).map((participant) => (
+                <div
+                  key={participant.sessionId}
+                  className="w-24 h-16 bg-[#202124] rounded-lg overflow-hidden border-2 border-[#5f6368]"
+                >
+                  <video
+                    ref={(video) => {
+                      if (video && participant.videoStream) {
+                        video.srcObject = participant.videoStream;
+                        video.play().catch(() => {});
+                      }
+                    }}
+                    className="w-full h-full object-cover"
+                    autoPlay
+                    playsInline
+                    muted
+                  />
+                  {!participant.videoStream && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-[#202124]">
+                      <span className="text-white text-xs font-medium">
+                        {(participant.name || "G")[0].toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}
