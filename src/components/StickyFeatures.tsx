@@ -59,18 +59,23 @@ export function StickyFeatures() {
         }
 
         scrollTimeout.current = setTimeout(() => {
-          if (e.deltaY > 0 && currentFeatureIndex < features.length - 1) {
-            // Scrolling down - still have features to show
-            e.preventDefault();
-            setCurrentFeatureIndex(prev => prev + 1);
-            lastScrollTime.current = now;
-          } else if (e.deltaY < 0 && currentFeatureIndex > 0) {
-            // Scrolling up - still have features to show
-            e.preventDefault();
-            setCurrentFeatureIndex(prev => prev - 1);
-            lastScrollTime.current = now;
+          if (e.deltaY > 0) {
+            // Scrolling down
+            if (currentFeatureIndex < features.length - 1) {
+              e.preventDefault();
+              setCurrentFeatureIndex(prev => prev + 1);
+              lastScrollTime.current = now;
+            }
+            // Only allow exit when at last feature
+          } else if (e.deltaY < 0) {
+            // Scrolling up
+            if (currentFeatureIndex > 0) {
+              e.preventDefault();
+              setCurrentFeatureIndex(prev => prev - 1);
+              lastScrollTime.current = now;
+            }
+            // Only allow exit when at first feature
           }
-          // If at first feature scrolling up, or last feature scrolling down, allow normal scroll
         }, 50);
       }
     };
