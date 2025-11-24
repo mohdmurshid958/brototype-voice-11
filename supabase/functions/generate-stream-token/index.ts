@@ -46,7 +46,7 @@ serve(async (req) => {
     console.log('Generated Stream token for user:', user.id);
 
     return new Response(
-      JSON.stringify({ token, userId: user.id }),
+      JSON.stringify({ token, apiKey, userId: user.id }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
