@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { StreamClient } from "https://esm.sh/@stream-io/node-sdk@0.1.13";
+import { create } from "https://deno.land/x/djwt@v2.8/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,10 +38,27 @@ serve(async (req) => {
       throw new Error('GetStream credentials not configured');
     }
 
-    const client = new StreamClient(apiKey, apiSecret);
-    
-    // Generate token for the user
-    const token = client.createToken(user.id);
+    // Create JWT token manually
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(apiSecret);
+    const key = await crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+
+    const payload = {
+      user_id: user.id,
+      iat: Math.floor(Date.now() / 1000),
+    };
+
+    const token = await create(
+      { alg: 'HS256', typ: 'JWT' },
+      payload,
+      key
+    );
 
     console.log('Generated Stream token for user:', user.id);
 
