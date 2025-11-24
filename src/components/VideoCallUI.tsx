@@ -16,6 +16,7 @@ import {
   Users,
   Wifi,
   WifiOff,
+  MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -26,12 +27,16 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { VideoCallChat } from "./VideoCallChat";
+import { VirtualBackgroundSelector } from "./VirtualBackgroundSelector";
+import { CallRecordingControls } from "./CallRecordingControls";
 
 interface VideoCallUIProps {
   onLeave: () => void;
+  callId: string;
 }
 
-export const VideoCallUI = ({ onLeave }: VideoCallUIProps) => {
+export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
   const call = useCall();
   const { useParticipants, useLocalParticipant, useRemoteParticipants } = useCallStateHooks();
   const participants = useParticipants();
@@ -42,6 +47,8 @@ export const VideoCallUI = ({ onLeave }: VideoCallUIProps) => {
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [virtualBackground, setVirtualBackground] = useState<string | null>(null);
   const [speakingParticipants, setSpeakingParticipants] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -398,6 +405,31 @@ export const VideoCallUI = ({ onLeave }: VideoCallUIProps) => {
             </SheetContent>
           </Sheet>
 
+          {/* Call Recording */}
+          <CallRecordingControls callId={callId} />
+
+          {/* Virtual Background */}
+          <VirtualBackgroundSelector
+            onBackgroundChange={setVirtualBackground}
+            currentBackground={virtualBackground}
+          />
+
+          {/* Chat Toggle */}
+          <Sheet open={showChat} onOpenChange={setShowChat}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="lg"
+                className="rounded-full w-12 h-12 p-0 bg-[#3c4043] hover:bg-[#5f6368]"
+              >
+                <MessageSquare className="w-5 h-5 text-white" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-96 p-0 bg-[#202124] border-l border-[#5f6368]/20">
+              <VideoCallChat callId={callId} />
+            </SheetContent>
+          </Sheet>
+
           {/* End Call */}
           <Button
             onClick={onLeave}
@@ -408,6 +440,24 @@ export const VideoCallUI = ({ onLeave }: VideoCallUIProps) => {
             <Phone className="w-5 h-5 text-white rotate-[135deg]" />
           </Button>
         </div>
+      </div>
+
+      {/* Participant Info Bar */}
+      <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-30">
+        <div className="bg-black/80 px-4 py-2 rounded-full">
+          <span className="text-white text-sm font-medium">
+            {participants.length} participant{participants.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+        
+        {remoteParticipants.length > 0 && (
+          <div className="bg-black/80 px-4 py-2 rounded-full flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500" />
+            <span className="text-white text-sm font-medium">
+              Connected with {remoteParticipants[0].name || "Guest"}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

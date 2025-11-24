@@ -52,6 +52,38 @@ export type Database = {
           },
         ]
       }
+      call_recordings: {
+        Row: {
+          call_id: string
+          created_at: string | null
+          duration_seconds: number | null
+          id: string
+          recording_url: string
+        }
+        Insert: {
+          call_id: string
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          recording_url: string
+        }
+        Update: {
+          call_id?: string
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          recording_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_recordings_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "video_calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           color: string
@@ -214,6 +246,38 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_call_messages: {
+        Row: {
+          call_id: string
+          created_at: string | null
+          id: string
+          message: string
+          user_id: string
+        }
+        Insert: {
+          call_id: string
+          created_at?: string | null
+          id?: string
+          message: string
+          user_id: string
+        }
+        Update: {
+          call_id?: string
+          created_at?: string | null
+          id?: string
+          message?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_call_messages_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "video_calls"
             referencedColumns: ["id"]
           },
         ]
