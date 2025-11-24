@@ -1,13 +1,20 @@
 import { useState } from "react";
 import SplitText from "./SplitText";
+import { motion } from "framer-motion";
 
 export function BrotalSection() {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <section className="relative py-20 overflow-hidden">
-      {/* Gradient background behind text - using hero gradient style */}
-      <div className="absolute inset-0 hero-gradient opacity-30" />
+    <motion.section 
+      className="relative py-20 overflow-hidden"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 1, ease: "easeOut" }}
+    >
+      {/* Gradient background behind text */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-accent/20 to-primary/30" />
       
       {/* Bottom gradient */}
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-primary/20 via-primary/10 to-transparent pointer-events-none" />
@@ -40,6 +47,6 @@ export function BrotalSection() {
           )}
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }
