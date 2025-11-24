@@ -127,7 +127,7 @@ const VideoCallContent = () => {
   return (
     <StreamVideoProvider client={client}>
       <StreamCall call={call}>
-        <VideoCallUI onLeave={handleEndCall} />
+        <VideoCallUI onLeave={handleEndCall} callId={callId!} />
       </StreamCall>
     </StreamVideoProvider>
   );
