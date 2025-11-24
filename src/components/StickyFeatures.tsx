@@ -39,40 +39,68 @@ const features: Feature[] = [
 export function StickyFeatures() {
   const [activeImage, setActiveImage] = useState(features[0].image);
   const [fadeImage, setFadeImage] = useState(true);
+  const [currentFeatureIndex, setCurrentFeatureIndex] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const isScrollingFeatures = useRef(false);
 
   useEffect(() => {
-    const contentBox = contentRef.current;
-    if (!contentBox) return;
+    const handleWheel = (e: WheelEvent) => {
+      const section = sectionRef.current;
+      const contentBox = contentRef.current;
+      if (!section || !contentBox) return;
 
-    const handleScroll = () => {
-      const featureElements = contentBox.querySelectorAll('[data-feature-index]');
-      
-      featureElements.forEach((element) => {
-        const rect = element.getBoundingClientRect();
-        const contentRect = contentBox.getBoundingClientRect();
+      const sectionRect = section.getBoundingClientRect();
+      const isInSection = sectionRect.top <= 100 && sectionRect.bottom >= window.innerHeight / 2;
+
+      if (isInSection) {
+        e.preventDefault();
         
-        if (rect.top >= contentRect.top && rect.top < contentRect.top + contentRect.height / 2) {
-          const index = parseInt(element.getAttribute('data-feature-index') || '0');
-          const newImage = features[index].image;
-          
-          if (newImage !== activeImage) {
-            setFadeImage(false);
-            setTimeout(() => {
-              setActiveImage(newImage);
-              setFadeImage(true);
-            }, 200);
+        if (e.deltaY > 0) {
+          // Scrolling down
+          if (currentFeatureIndex < features.length - 1) {
+            setCurrentFeatureIndex(prev => {
+              const newIndex = prev + 1;
+              contentBox.scrollTo({
+                top: newIndex * contentBox.clientHeight,
+                behavior: 'smooth'
+              });
+              return newIndex;
+            });
+          }
+        } else {
+          // Scrolling up
+          if (currentFeatureIndex > 0) {
+            setCurrentFeatureIndex(prev => {
+              const newIndex = prev - 1;
+              contentBox.scrollTo({
+                top: newIndex * contentBox.clientHeight,
+                behavior: 'smooth'
+              });
+              return newIndex;
+            });
           }
         }
-      });
+      }
     };
 
-    contentBox.addEventListener('scroll', handleScroll);
-    return () => contentBox.removeEventListener('scroll', handleScroll);
-  }, [activeImage]);
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, [currentFeatureIndex]);
+
+  useEffect(() => {
+    const newImage = features[currentFeatureIndex].image;
+    if (newImage !== activeImage) {
+      setFadeImage(false);
+      setTimeout(() => {
+        setActiveImage(newImage);
+        setFadeImage(true);
+      }, 200);
+    }
+  }, [currentFeatureIndex, activeImage]);
 
   return (
-    <section id="features" className="py-20 px-4 relative overflow-hidden">
+    <section ref={sectionRef} id="features" className="py-20 px-4 relative overflow-hidden">
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-1/4 right-1/3 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
       </div>
