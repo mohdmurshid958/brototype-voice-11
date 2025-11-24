@@ -8,7 +8,7 @@ import { useEffect } from "react";
 export default function Login() {
   const navigate = useNavigate();
   const [isSignup, setIsSignup] = useState(false);
-  const { signIn, signUp, user, userRole } = useAuth();
+  const { signIn, signUp, signInWithGoogle, user, userRole } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -56,11 +56,24 @@ export default function Login() {
     setIsSignup(!isSignup);
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to sign in with Google",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <SignInFlow 
       onSubmit={handleSubmit}
       isSignup={isSignup}
       onToggleMode={handleToggleMode}
+      onGoogleSignIn={handleGoogleSignIn}
     />
   );
 }
