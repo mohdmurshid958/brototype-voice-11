@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import DisplayCards from "@/components/ui/display-cards";
 import { DottedSurface } from "@/components/ui/dotted-surface";
 import { CTASection } from "@/components/ui/cta-with-rectangle";
+import { BrotalSection } from "@/components/BrotalSection";
 
 export default function Landing() {
   const containerVariants = {
@@ -340,6 +341,9 @@ export default function Landing() {
         }}
         withGlow={true}
       />
+
+      {/* Brotal Section */}
+      <BrotalSection />
 
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-border">
