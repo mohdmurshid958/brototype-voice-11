@@ -116,25 +116,14 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
         await call.microphone.disable();
         setIsMicOn(false);
       } else {
-        // Request permission explicitly if needed
-        try {
-          await navigator.mediaDevices.getUserMedia({ audio: true });
-        } catch (permError) {
-          toast({
-            title: "Microphone Permission Required",
-            description: "Please allow microphone access in your browser settings.",
-            variant: "destructive",
-          });
-          return;
-        }
         await call.microphone.enable();
         setIsMicOn(true);
       }
     } catch (error) {
       console.error("Error toggling microphone:", error);
       toast({
-        title: "Microphone Error",
-        description: "Failed to toggle microphone. Please try again.",
+        title: "Microphone Permission Needed",
+        description: "Please allow microphone access in your browser settings.",
         variant: "destructive",
       });
     }
@@ -147,25 +136,14 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
         await call.camera.disable();
         setIsCameraOn(false);
       } else {
-        // Request permission explicitly if needed
-        try {
-          await navigator.mediaDevices.getUserMedia({ video: true });
-        } catch (permError) {
-          toast({
-            title: "Camera Permission Required",
-            description: "Please allow camera access in your browser settings.",
-            variant: "destructive",
-          });
-          return;
-        }
         await call.camera.enable();
         setIsCameraOn(true);
       }
     } catch (error) {
       console.error("Error toggling camera:", error);
       toast({
-        title: "Camera Error",
-        description: "Failed to toggle camera. Please try again.",
+        title: "Camera Permission Needed",
+        description: "Please allow camera access in your browser settings.",
         variant: "destructive",
       });
     }
@@ -181,35 +159,18 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
         await call.screenShare.disable();
         console.log("Screen share disabled");
         setIsScreenSharing(false);
-        toast({
-          title: "Screen Sharing Stopped",
-          description: "You stopped sharing your screen.",
-        });
       } else {
-        // Request screen share permission
-        try {
-          await navigator.mediaDevices.getDisplayMedia({ video: true });
-          await call.screenShare.enable();
-          console.log("Screen share enabled");
-          setIsScreenSharing(true);
-          toast({
-            title: "Screen Sharing Started",
-            description: "You are now sharing your screen.",
-          });
-        } catch (permError) {
-          console.error("Screen share permission denied:", permError);
-          toast({
-            title: "Screen Share Cancelled",
-            description: "Screen sharing was cancelled or permission denied.",
-            variant: "destructive",
-          });
-        }
+        await call.screenShare.enable();
+        console.log("Screen share enabled");
+        setIsScreenSharing(true);
       }
     } catch (error) {
       console.error("Error toggling screen share:", error);
       toast({
         title: "Screen Share Error",
-        description: "Failed to toggle screen sharing. Please try again.",
+        description: error instanceof Error && error.message.includes("denied") 
+          ? "Screen sharing permission denied." 
+          : "Failed to toggle screen sharing.",
         variant: "destructive",
       });
     }
@@ -257,12 +218,12 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-[#1a1a1a] flex flex-col">
+    <div className="fixed inset-0 bg-background flex flex-col">
       {/* Main Video Area */}
       <div className="flex-1 relative p-4">
         {/* Screen Share View (Priority) */}
         {screenShareParticipant && screenShareStream && (
-          <div className="absolute inset-4 bg-black rounded-lg overflow-hidden z-10">
+          <div className="absolute inset-4 bg-card rounded-lg overflow-hidden z-10">
             <video
               key={`screen-${screenShareParticipant.sessionId}-${screenShareStream.id}`}
               ref={(videoElement) => {
@@ -280,13 +241,13 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
                     });
                 }
               }}
-              className="w-full h-full object-contain bg-black"
+              className="w-full h-full object-contain bg-card"
               autoPlay
               playsInline
               muted={false}
             />
-            <div className="absolute top-4 left-4 bg-black/90 px-4 py-2 rounded-full shadow-lg">
-              <span className="text-white text-sm font-medium flex items-center gap-2">
+            <div className="absolute top-4 left-4 bg-card/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-border">
+              <span className="text-foreground text-sm font-medium flex items-center gap-2">
                 <Monitor className="w-4 h-4" />
                 {screenShareParticipant.name || "Guest"} is presenting
               </span>
@@ -297,7 +258,7 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
               {participants.slice(0, 3).map((participant) => (
                 <div
                   key={participant.sessionId}
-                  className="w-24 h-16 bg-[#202124] rounded-lg overflow-hidden border-2 border-[#5f6368]"
+                  className="w-24 h-16 bg-muted rounded-lg overflow-hidden border-2 border-border"
                 >
                   <video
                     ref={(video) => {
@@ -312,8 +273,8 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
                     muted
                   />
                   {!participant.videoStream && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-[#202124]">
-                      <span className="text-white text-xs font-medium">
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                      <span className="text-foreground text-xs font-medium">
                         {(participant.name || "G")[0].toUpperCase()}
                       </span>
                     </div>
@@ -338,8 +299,8 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
                 <div
                   key={participant.sessionId}
                   className={cn(
-                    "relative bg-[#202124] rounded-lg overflow-hidden transition-all duration-300 flex items-center justify-center",
-                    isSpeaking(participant.sessionId) && "ring-4 ring-blue-500"
+                    "relative bg-muted rounded-lg overflow-hidden transition-all duration-300 flex items-center justify-center",
+                    isSpeaking(participant.sessionId) && "ring-4 ring-primary"
                   )}
                 >
                   <video
@@ -356,23 +317,23 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
                     muted
                   />
                   {!participant.videoStream && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-[#202124]">
-                      <div className="w-32 h-32 rounded-full bg-[#5f6368] flex items-center justify-center">
-                        <span className="text-6xl font-medium text-white">
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                      <div className="w-32 h-32 rounded-full bg-secondary flex items-center justify-center">
+                        <span className="text-6xl font-medium text-foreground">
                           {(participant.name || "G")[0].toUpperCase()}
                         </span>
                       </div>
                     </div>
                   )}
-                  <div className="absolute bottom-4 left-4 bg-black/80 px-4 py-2 rounded-lg flex items-center gap-2">
+                  <div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm px-4 py-2 rounded-lg flex items-center gap-2 border border-border">
                     {!getParticipantStatus(participant).hasAudio && (
-                      <MicOff className="w-4 h-4 text-white" />
+                      <MicOff className="w-4 h-4 text-destructive" />
                     )}
-                    <span className="text-white text-sm font-medium">
+                    <span className="text-foreground text-sm font-medium">
                       {participant.name || "Guest"}
                     </span>
                     {isSpeaking(participant.sessionId) && (
-                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                      <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                     )}
                   </div>
                 </div>
@@ -380,10 +341,10 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
-                  <div className="w-32 h-32 rounded-full bg-[#5f6368] mx-auto mb-4 flex items-center justify-center">
-                    <Video className="w-16 h-16 text-white" />
+                  <div className="w-32 h-32 rounded-full bg-secondary mx-auto mb-4 flex items-center justify-center">
+                    <Video className="w-16 h-16 text-muted-foreground" />
                   </div>
-                  <p className="text-white/70">Waiting for others to join...</p>
+                  <p className="text-muted-foreground">Waiting for others to join...</p>
                 </div>
               </div>
             )}
@@ -393,8 +354,8 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
         {/* Local Participant (Picture-in-Picture) */}
         {localParticipant && (
           <div className={cn(
-            "absolute bottom-28 right-8 w-48 h-36 bg-[#202124] rounded-lg overflow-hidden shadow-2xl border-2 transition-all duration-300 flex items-center justify-center",
-            isSpeaking(localParticipant.sessionId) ? "border-blue-500" : "border-[#5f6368]"
+            "absolute bottom-28 right-8 w-48 h-36 bg-muted rounded-lg overflow-hidden shadow-2xl border-2 transition-all duration-300 flex items-center justify-center",
+            isSpeaking(localParticipant.sessionId) ? "border-primary" : "border-border"
           )}>
             <video
               ref={(video) => {
@@ -409,19 +370,19 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
               muted
             />
             {!localParticipant.videoStream && (
-              <div className="absolute inset-0 flex items-center justify-center bg-[#202124]">
-                <div className="w-16 h-16 rounded-full bg-[#5f6368] flex items-center justify-center">
-                  <span className="text-2xl font-medium text-white">
+              <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center">
+                  <span className="text-2xl font-medium text-foreground">
                     {(localParticipant.name || "Y")[0].toUpperCase()}
                   </span>
                 </div>
               </div>
             )}
-            <div className="absolute top-2 left-2 bg-black/80 px-2 py-1 rounded-md flex items-center gap-1.5">
+            <div className="absolute top-2 left-2 bg-card/90 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1.5 border border-border">
               {!isMicOn && (
-                <MicOff className="w-3 h-3 text-white" />
+                <MicOff className="w-3 h-3 text-destructive" />
               )}
-              <span className="text-white text-xs font-medium">You</span>
+              <span className="text-foreground text-xs font-medium">You</span>
             </div>
           </div>
         )}
@@ -437,13 +398,13 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
             size="lg"
             className={cn(
               "rounded-full w-12 h-12 p-0",
-              isMicOn ? "bg-[#3c4043] hover:bg-[#5f6368]" : "bg-red-600 hover:bg-red-700"
+              isMicOn ? "bg-muted hover:bg-muted/80" : "bg-destructive hover:bg-destructive/90"
             )}
           >
             {isMicOn ? (
-              <Mic className="w-5 h-5 text-white" />
+              <Mic className="w-5 h-5 text-foreground" />
             ) : (
-              <MicOff className="w-5 h-5 text-white" />
+              <MicOff className="w-5 h-5 text-destructive-foreground" />
             )}
           </Button>
 
@@ -454,13 +415,13 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
             size="lg"
             className={cn(
               "rounded-full w-12 h-12 p-0",
-              isCameraOn ? "bg-[#3c4043] hover:bg-[#5f6368]" : "bg-red-600 hover:bg-red-700"
+              isCameraOn ? "bg-muted hover:bg-muted/80" : "bg-destructive hover:bg-destructive/90"
             )}
           >
             {isCameraOn ? (
-              <Video className="w-5 h-5 text-white" />
+              <Video className="w-5 h-5 text-foreground" />
             ) : (
-              <VideoOff className="w-5 h-5 text-white" />
+              <VideoOff className="w-5 h-5 text-destructive-foreground" />
             )}
           </Button>
 
@@ -471,13 +432,13 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
             size="lg"
             className={cn(
               "rounded-full w-12 h-12 p-0",
-              isScreenSharing ? "bg-blue-600 hover:bg-blue-700" : "bg-[#3c4043] hover:bg-[#5f6368]"
+              isScreenSharing ? "bg-primary hover:bg-primary/90" : "bg-muted hover:bg-muted/80"
             )}
           >
             {isScreenSharing ? (
-              <MonitorOff className="w-5 h-5 text-white" />
+              <MonitorOff className="w-5 h-5 text-primary-foreground" />
             ) : (
-              <Monitor className="w-5 h-5 text-white" />
+              <Monitor className="w-5 h-5 text-foreground" />
             )}
           </Button>
 
@@ -487,14 +448,14 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
               <Button
                 variant="ghost"
                 size="lg"
-                className="rounded-full w-12 h-12 p-0 bg-[#3c4043] hover:bg-[#5f6368]"
+                className="rounded-full w-12 h-12 p-0 bg-muted hover:bg-muted/80"
               >
-                <Users className="w-5 h-5 text-white" />
+                <Users className="w-5 h-5 text-foreground" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80 bg-[#202124] border-l border-[#5f6368]/20">
+            <SheetContent side="right" className="w-80">
               <SheetHeader>
-                <SheetTitle className="text-white">Participants ({participants.length})</SheetTitle>
+                <SheetTitle>Participants ({participants.length})</SheetTitle>
               </SheetHeader>
               <ScrollArea className="h-[calc(100vh-8rem)] mt-6">
                 <div className="space-y-4">
@@ -506,41 +467,41 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
                       <div
                         key={participant.sessionId}
                         className={cn(
-                          "flex items-center gap-3 p-3 rounded-lg border border-[#5f6368]/20 transition-all",
-                          isSpeaking(participant.sessionId) && "border-blue-500 bg-blue-500/5"
+                          "flex items-center gap-3 p-3 rounded-lg border transition-all",
+                          isSpeaking(participant.sessionId) ? "border-primary bg-primary/5" : "border-border"
                         )}
                       >
                         <div className="relative">
-                          <div className="w-10 h-10 rounded-full bg-[#5f6368] flex items-center justify-center">
-                            <span className="text-sm font-medium text-white">
+                          <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
+                            <span className="text-sm font-medium text-foreground">
                               {(participant.name || "G")[0].toUpperCase()}
                             </span>
                           </div>
                           {isSpeaking(participant.sessionId) && (
-                            <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-green-500 border-2 border-[#202124] animate-pulse" />
+                            <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-primary border-2 border-card animate-pulse" />
                           )}
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-white truncate">
+                          <p className="text-sm font-medium text-foreground truncate">
                             {participant.name || "Guest"}
                             {isLocal && " (You)"}
                           </p>
                           <div className="flex items-center gap-2 mt-1">
                             {status.isConnected ? (
-                              <Wifi className="w-3 h-3 text-green-500" />
+                              <Wifi className="w-3 h-3 text-primary" />
                             ) : (
-                              <WifiOff className="w-3 h-3 text-red-500" />
+                              <WifiOff className="w-3 h-3 text-destructive" />
                             )}
                             {status.hasAudio ? (
-                              <Mic className="w-3 h-3 text-white/60" />
+                              <Mic className="w-3 h-3 text-muted-foreground" />
                             ) : (
-                              <MicOff className="w-3 h-3 text-white/60" />
+                              <MicOff className="w-3 h-3 text-muted-foreground" />
                             )}
                             {status.hasVideo ? (
-                              <Video className="w-3 h-3 text-white/60" />
+                              <Video className="w-3 h-3 text-muted-foreground" />
                             ) : (
-                              <VideoOff className="w-3 h-3 text-white/60" />
+                              <VideoOff className="w-3 h-3 text-muted-foreground" />
                             )}
                           </div>
                         </div>
@@ -567,12 +528,12 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
               <Button
                 variant="ghost"
                 size="lg"
-                className="rounded-full w-12 h-12 p-0 bg-[#3c4043] hover:bg-[#5f6368]"
+                className="rounded-full w-12 h-12 p-0 bg-muted hover:bg-muted/80"
               >
-                <MessageSquare className="w-5 h-5 text-white" />
+                <MessageSquare className="w-5 h-5 text-foreground" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-96 p-0 bg-[#202124] border-l border-[#5f6368]/20">
+            <SheetContent side="right" className="w-96 p-0">
               <VideoCallChat callId={callId} />
             </SheetContent>
           </Sheet>
@@ -598,25 +559,25 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
             onClick={onLeave}
             variant="ghost"
             size="lg"
-            className="rounded-full w-12 h-12 p-0 bg-red-600 hover:bg-red-700"
+            className="rounded-full w-12 h-12 p-0 bg-destructive hover:bg-destructive/90"
           >
-            <Phone className="w-5 h-5 text-white rotate-[135deg]" />
+            <Phone className="w-5 h-5 text-destructive-foreground rotate-[135deg]" />
           </Button>
         </div>
       </div>
 
       {/* Participant Info Bar */}
       <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-30">
-        <div className="bg-black/80 px-4 py-2 rounded-full">
-          <span className="text-white text-sm font-medium">
+        <div className="bg-card/90 backdrop-blur-sm px-4 py-2 rounded-full border border-border">
+          <span className="text-foreground text-sm font-medium">
             {participants.length} participant{participants.length !== 1 ? "s" : ""}
           </span>
         </div>
         
         {remoteParticipants.length > 0 && (
-          <div className="bg-black/80 px-4 py-2 rounded-full flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-white text-sm font-medium">
+          <div className="bg-card/90 backdrop-blur-sm px-4 py-2 rounded-full flex items-center gap-2 border border-border">
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-foreground text-sm font-medium">
               Connected with {remoteParticipants[0].name || "Guest"}
             </span>
           </div>

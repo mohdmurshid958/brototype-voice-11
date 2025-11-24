@@ -49,26 +49,12 @@ const VideoCallContent = () => {
       try {
         console.log('Initializing call with ID:', streamCallId);
         
-        // Request camera and microphone permissions explicitly
-        try {
-          await navigator.mediaDevices.getUserMedia({ 
-            video: true, 
-            audio: true 
-          });
-          console.log('Camera and microphone permissions granted');
-        } catch (permError) {
-          console.error('Permission error:', permError);
-          // Show a user-friendly error
-          alert('Camera and microphone access is required for video calls. Please allow access in your browser settings.');
-          throw permError;
-        }
-        
         const newCall = client.call('default', streamCallId);
         
         // Get or create the call - this allows both users to join the same call
         await newCall.getOrCreate();
         
-        // Join the call with audio and video
+        // Join the call
         await newCall.join({ 
           create: false 
         });
@@ -77,14 +63,19 @@ const VideoCallContent = () => {
         
         setCall(newCall);
         
-        // Enable microphone and camera
+        // Try to enable microphone and camera (optional - user can enable manually)
         try {
           await newCall.microphone.enable();
+          console.log('Microphone enabled');
+        } catch (micError) {
+          console.warn('Could not enable microphone:', micError);
+        }
+        
+        try {
           await newCall.camera.enable();
-          console.log('Microphone and camera enabled');
-        } catch (deviceError) {
-          console.warn('Could not enable devices:', deviceError);
-          // Continue - user can enable manually
+          console.log('Camera enabled');
+        } catch (camError) {
+          console.warn('Could not enable camera:', camError);
         }
         
         // Update call status to active using database UUID
