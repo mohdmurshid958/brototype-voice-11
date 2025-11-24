@@ -47,18 +47,34 @@ const VideoCallContent = () => {
     const initCall = async () => {
       setIsJoining(true);
       try {
+        console.log('Initializing call with ID:', streamCallId);
         const newCall = client.call('default', streamCallId);
-        await newCall.join({ create: true });
         
-        // Enable microphone by default (audio-only mode support)
-        await newCall.microphone.enable();
+        // Get or create the call - this allows both users to join the same call
+        await newCall.getOrCreate();
+        
+        // Join the call
+        await newCall.join();
+        
+        console.log('Successfully joined call');
         
         setCall(newCall);
+        
+        // Try to enable microphone, but don't fail if it doesn't work
+        try {
+          await newCall.microphone.enable();
+          console.log('Microphone enabled');
+        } catch (micError) {
+          console.warn('Could not enable microphone:', micError);
+          // Continue without mic - user can enable it manually
+        }
         
         // Update call status to active using database UUID
         await updateCallStatus(callId, 'active');
       } catch (error) {
         console.error('Error joining call:', error);
+        console.error('Call ID:', streamCallId);
+        console.error('Client:', client);
       } finally {
         setIsJoining(false);
       }
