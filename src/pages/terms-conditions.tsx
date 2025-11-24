@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, ArrowLeft } from "lucide-react";
+import { FileText, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function TermsConditions() {
@@ -22,46 +22,69 @@ export default function TermsConditions() {
         >
           <div className="flex items-center gap-3 mb-8">
             <div className="p-3 rounded-xl bg-primary/10">
-              <Shield className="h-8 w-8 text-primary" />
+              <FileText className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold">Privacy Policy</h1>
+              <h1 className="text-4xl md:text-5xl font-bold">Terms & Conditions</h1>
               <p className="text-muted-foreground mt-2">Last updated: January 2025</p>
             </div>
           </div>
 
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Introduction</CardTitle>
+              <CardTitle>Agreement to Terms</CardTitle>
             </CardHeader>
-            <CardContent className="prose prose-neutral dark:prose-invert max-w-none">
+            <CardContent>
               <p className="text-muted-foreground leading-relaxed">
-                Welcome to the Brototype Complaint Portal. We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains what information we collect, how we use it, and what rights you have in relation to it.
+                By accessing and using the Brototype Complaint Portal, you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you should not use this portal.
               </p>
             </CardContent>
           </Card>
 
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Information We Collect</CardTitle>
+              <CardTitle>User Eligibility</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground leading-relaxed">
+                This portal is exclusively for Brototype students and authorized administrators. By registering, you confirm that you are a legitimate member of the Brototype community and will use the portal in accordance with these terms.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>User Responsibilities</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-muted-foreground leading-relaxed">As a user of this portal, you agree to:</p>
+              <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                <li>Provide accurate and truthful information in your complaints</li>
+                <li>Maintain the confidentiality of your account credentials</li>
+                <li>Use the portal only for its intended purpose of submitting legitimate complaints</li>
+                <li>Respect other users and administrators in all communications</li>
+                <li>Not submit spam, false, or malicious content</li>
+                <li>Not attempt to access unauthorized areas or data</li>
+                <li>Report any security vulnerabilities to administrators</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Complaint Submission Guidelines</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h3 className="font-semibold text-lg mb-2">Personal Information</h3>
+                <h3 className="font-semibold text-lg mb-2">Valid Complaints</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  When you register on our portal, we collect your full name, email address, batch information, and any other information you voluntarily provide when submitting complaints.
+                  Complaints should be legitimate concerns related to Brototype facilities, services, or programs. Each complaint must include a clear description and appropriate category.
                 </p>
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-2">Complaint Data</h3>
+                <h3 className="font-semibold text-lg mb-2">Prohibited Content</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  We collect the content of complaints you submit, including descriptions, categories, and any communication related to complaint resolution.
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Usage Information</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  We automatically collect certain information about your device and how you interact with our portal, including IP address, browser type, and access times.
+                  You may not submit content that is defamatory, harassing, threatening, discriminatory, or otherwise inappropriate. We reserve the right to remove any content that violates these guidelines.
                 </p>
               </div>
             </CardContent>
@@ -69,89 +92,91 @@ export default function TermsConditions() {
 
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>How We Use Your Information</CardTitle>
+              <CardTitle>Complaint Processing</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-muted-foreground leading-relaxed">We use the information we collect to:</p>
-              <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                <li>Process and manage your complaints</li>
-                <li>Communicate with you about complaint status and resolutions</li>
-                <li>Improve our services and user experience</li>
-                <li>Ensure security and prevent fraud</li>
-                <li>Analyze usage patterns to enhance portal functionality</li>
-                <li>Comply with legal obligations</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Data Security</CardTitle>
-            </CardHeader>
-            <CardContent>
               <p className="text-muted-foreground leading-relaxed">
-                We implement appropriate technical and organizational security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. This includes encryption, secure authentication, and regular security assessments.
+                We strive to review and respond to all complaints in a timely manner, typically within 24-48 hours. However, we do not guarantee specific resolution times, as each complaint is unique and may require different levels of investigation and action.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                Complaint status updates will be provided through the portal. Students are responsible for checking their complaint status regularly.
               </p>
             </CardContent>
           </Card>
 
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Data Retention</CardTitle>
+              <CardTitle>Intellectual Property</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground leading-relaxed">
-                We retain your personal information only for as long as necessary to fulfill the purposes outlined in this Privacy Policy, unless a longer retention period is required or permitted by law. Complaint data is typically retained for recordkeeping and analysis purposes.
+                All content on this portal, including but not limited to text, graphics, logos, and software, is the property of Brototype or its licensors and is protected by copyright and other intellectual property laws. You may not copy, modify, or distribute any content without explicit permission.
               </p>
             </CardContent>
           </Card>
 
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Your Rights</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-muted-foreground leading-relaxed">You have the right to:</p>
-              <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                <li>Access your personal information</li>
-                <li>Correct inaccurate or incomplete data</li>
-                <li>Request deletion of your data</li>
-                <li>Object to processing of your personal information</li>
-                <li>Request data portability</li>
-                <li>Withdraw consent at any time</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Third-Party Services</CardTitle>
+              <CardTitle>Privacy and Data Protection</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground leading-relaxed">
-                Our portal uses Lovable Cloud infrastructure for backend services. We do not share your personal information with third parties except as necessary to provide our services or as required by law.
+                Your use of this portal is also governed by our Privacy Policy. We collect and process personal data in accordance with applicable data protection laws. Please review our Privacy Policy to understand how we handle your information.
               </p>
             </CardContent>
           </Card>
 
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Changes to This Policy</CardTitle>
+              <CardTitle>Account Termination</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground leading-relaxed">
-                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date. You are advised to review this Privacy Policy periodically for any changes.
+                We reserve the right to suspend or terminate your access to the portal at any time, without notice, for conduct that we believe violates these Terms and Conditions or is harmful to other users, us, or third parties, or for any other reason.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Limitation of Liability</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground leading-relaxed">
+                The portal is provided "as is" without warranties of any kind. Brototype shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the portal.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Changes to Terms</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground leading-relaxed">
+                We reserve the right to modify these Terms and Conditions at any time. Changes will be effective immediately upon posting. Your continued use of the portal after changes are posted constitutes your acceptance of the modified terms.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Governing Law</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground leading-relaxed">
+                These Terms and Conditions are governed by and construed in accordance with the laws of India. Any disputes arising from these terms shall be subject to the exclusive jurisdiction of the courts in Kerala.
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Contact Us</CardTitle>
+              <CardTitle>Contact Information</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground leading-relaxed">
-                If you have any questions about this Privacy Policy or wish to exercise your rights, please contact the Brototype administration through the complaint portal or at our official communication channels.
+                If you have any questions about these Terms and Conditions, please contact the Brototype administration through the complaint portal or at our official communication channels.
               </p>
             </CardContent>
           </Card>
