@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, MessageSquare, BarChart3, Users, FolderTree, User } from "lucide-react";
+import { LayoutDashboard, MessageSquare, BarChart3, Users, FolderTree, Video, User } from "lucide-react";
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -12,6 +12,7 @@ export function AdminDock() {
     { title: "Analytics", icon: BarChart3, href: "/admin/analytics" },
     { title: "Users", icon: Users, href: "/admin/users" },
     { title: "Categories", icon: FolderTree, href: "/admin/categories" },
+    { title: "Video Chat", icon: Video, href: "/admin/chat" },
     { title: "Profile", icon: User, href: "/admin/profile" },
   ];
 

@@ -15,6 +15,7 @@ import StudentComplaintDetail from "./pages/student/ComplaintDetail";
 import SubmitComplaint from "./pages/student/SubmitComplaint";
 import StudentComplaints from "./pages/student/Complaints";
 import StudentProfile from "./pages/student/Profile";
+import StudentChat from "./pages/student/Chat";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminComplaints from "./pages/admin/Complaints";
 import AdminAnalytics from "./pages/admin/Analytics";
@@ -22,6 +23,8 @@ import AdminUsers from "./pages/admin/Users";
 import AdminCategories from "./pages/admin/Categories";
 import AdminProfile from "./pages/admin/Profile";
 import AdminComplaintDetail from "./pages/admin/ComplaintDetail";
+import AdminChat from "./pages/admin/Chat";
+import VideoCall from "./pages/VideoCall";
 import { AdminDock } from "./components/AdminDock";
 import { AdminMobileNav } from "./components/AdminMobileNav";
 import { AdminSidebar } from "./components/AdminSidebar";
@@ -86,6 +89,7 @@ function AppContent() {
           <Route path="/student/submit" element={<ProtectedRoute requiredRole="student"><SubmitComplaint /></ProtectedRoute>} />
           <Route path="/student/complaints" element={<ProtectedRoute requiredRole="student"><StudentComplaints /></ProtectedRoute>} />
           <Route path="/student/complaints/:id" element={<ProtectedRoute requiredRole="student"><StudentComplaintDetail /></ProtectedRoute>} />
+          <Route path="/student/chat" element={<ProtectedRoute requiredRole="student"><StudentChat /></ProtectedRoute>} />
           <Route path="/student/profile" element={<ProtectedRoute requiredRole="student"><StudentProfile /></ProtectedRoute>} />
           
           {/* Admin Routes */}
@@ -95,7 +99,10 @@ function AppContent() {
           <Route path="/admin/analytics" element={<ProtectedRoute requiredRole="admin"><AdminAnalytics /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><AdminUsers /></ProtectedRoute>} />
           <Route path="/admin/categories" element={<ProtectedRoute requiredRole="admin"><AdminCategories /></ProtectedRoute>} />
+          <Route path="/admin/chat" element={<ProtectedRoute requiredRole="admin"><AdminChat /></ProtectedRoute>} />
           <Route path="/admin/profile" element={<ProtectedRoute requiredRole="admin"><AdminProfile /></ProtectedRoute>} />
+          
+          <Route path="/video-call/:callId?" element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
         
           <Route path="*" element={<NotFound />} />
         </Routes>

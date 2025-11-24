@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, MessageSquare, PlusCircle, User } from "lucide-react";
+import { LayoutDashboard, MessageSquare, PlusCircle, Video, User } from "lucide-react";
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -10,6 +10,7 @@ export function StudentDock() {
     { title: "Dashboard", icon: LayoutDashboard, href: "/student/dashboard" },
     { title: "Complaints", icon: MessageSquare, href: "/student/complaints" },
     { title: "Submit", icon: PlusCircle, href: "/student/submit" },
+    { title: "Video Chat", icon: Video, href: "/student/chat" },
     { title: "Profile", icon: User, href: "/student/profile" },
   ];
 
