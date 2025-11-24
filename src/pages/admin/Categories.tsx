@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Plus, Search, Edit, Trash2, FolderKanban } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/useCategories";
 import { useComplaints } from "@/hooks/useComplaints";
@@ -67,6 +67,20 @@ export default function AdminCategories() {
   const filteredCategories = categories?.filter((cat) =>
     cat.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
+
+  // Category statistics
+  const categoryStats = useMemo(() => {
+    return categories?.map(category => ({
+      id: category.id,
+      name: category.name,
+      color: getColorValue(category.color),
+      count: getCategoryCount(category.name)
+    })).sort((a, b) => b.count - a.count) || [];
+  }, [categories, complaints]);
+
+  const maxCategoryCount = useMemo(() => {
+    return Math.max(...categoryStats.map(c => c.count), 1);
+  }, [categoryStats]);
 
   return (
     <div className="flex min-h-screen w-full">
@@ -152,35 +166,74 @@ export default function AdminCategories() {
               <p className="text-muted-foreground">No categories found</p>
             </Card>
           ) : (
-            <div className={isMobile ? "space-y-4" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"}>
-              {filteredCategories.map((category) => (
-                <Card key={category.id} className="p-4 hover:border-primary transition-colors">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-1">{category.name}</h3>
-                      <Badge variant="secondary">{getCategoryCount(category.name)} complaints</Badge>
+            <>
+              <div className={isMobile ? "space-y-4" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"}>
+                {filteredCategories.map((category) => (
+                  <Card key={category.id} className="p-4 hover:border-primary transition-colors">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg mb-1">{category.name}</h3>
+                        <Badge variant="secondary">{getCategoryCount(category.name)} complaints</Badge>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteCategory(category.id)}
+                          disabled={deleteCategory.isPending}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteCategory(category.id)}
-                        disabled={deleteCategory.isPending}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: getColorValue(category.color) }}
+                      />
+                      <span className="capitalize">{category.color}</span>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: getColorValue(category.color) }}
-                    />
-                    <span className="capitalize">{category.color}</span>
-                  </div>
-                </Card>
-              ))}
-            </div>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Category Statistics */}
+              <Card className="p-4 md:p-6 mt-6">
+                <h2 className="text-lg md:text-xl font-bold mb-4">Category Statistics</h2>
+                <div className="space-y-3 md:space-y-4">
+                  {categoryStats.map((category) => (
+                    <div key={category.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: category.color }}
+                        />
+                        <span className="font-medium text-sm md:text-base">{category.name}</span>
+                      </div>
+                      <div className="flex items-center gap-3 md:gap-4 pl-6 sm:pl-0">
+                        <span className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">
+                          {category.count} {category.count === 1 ? 'complaint' : 'complaints'}
+                        </span>
+                        <div className="flex-1 sm:w-24 md:w-32">
+                          <Progress 
+                            value={(category.count / maxCategoryCount) * 100}
+                            className="h-2"
+                            style={{
+                              ['--progress-background' as string]: category.color
+                            } as React.CSSProperties}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {categoryStats.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No category data available yet
+                    </p>
+                  )}
+                </div>
+              </Card>
+            </>
           )}
         </div>
       </main>
