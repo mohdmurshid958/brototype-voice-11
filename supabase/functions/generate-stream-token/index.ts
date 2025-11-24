@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { create } from "https://deno.land/x/djwt@v2.8/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,7 +37,25 @@ serve(async (req) => {
       throw new Error('GetStream credentials not configured');
     }
 
-    // Create JWT token manually
+    // Create JWT token manually using Web Crypto API
+    const base64UrlEncode = (data: string) => {
+      return btoa(data)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+    };
+
+    const header = { alg: 'HS256', typ: 'JWT' };
+    const payload = {
+      user_id: user.id,
+      iat: Math.floor(Date.now() / 1000),
+    };
+
+    const encodedHeader = base64UrlEncode(JSON.stringify(header));
+    const encodedPayload = base64UrlEncode(JSON.stringify(payload));
+    const message = `${encodedHeader}.${encodedPayload}`;
+
+    // Create HMAC signature
     const encoder = new TextEncoder();
     const keyData = encoder.encode(apiSecret);
     const key = await crypto.subtle.importKey(
@@ -49,16 +66,14 @@ serve(async (req) => {
       ['sign']
     );
 
-    const payload = {
-      user_id: user.id,
-      iat: Math.floor(Date.now() / 1000),
-    };
+    const signatureBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(message));
+    const signatureArray = Array.from(new Uint8Array(signatureBuffer));
+    const signatureBase64 = btoa(String.fromCharCode(...signatureArray))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
 
-    const token = await create(
-      { alg: 'HS256', typ: 'JWT' },
-      payload,
-      key
-    );
+    const token = `${message}.${signatureBase64}`;
 
     console.log('Generated Stream token for user:', user.id);
 
