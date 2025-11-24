@@ -66,7 +66,7 @@ const Chat = () => {
                     className="bg-green-600 hover:bg-green-700"
                     onClick={async () => {
                       await updateCallStatus(call.id, 'active');
-                      navigate(`/video-call/${call.stream_call_id}`);
+                      navigate(`/video-call/${call.id}`);
                       sonnerToast.dismiss();
                     }}
                   >
@@ -129,7 +129,7 @@ const Chat = () => {
     try {
       const result = await createCall();
       if (result) {
-        navigate(`/video-call/${result.call.stream_call_id}`);
+        navigate(`/video-call/${result.call.id}`);
       }
     } finally {
       setIsCreating(false);
