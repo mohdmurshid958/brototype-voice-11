@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 export function BrotalSection() {
   return (
     <motion.section 
-      className="relative py-0 overflow-visible h-[200px] sm:h-[280px] md:h-[360px] lg:h-[400px]"
+      className="relative py-0 overflow-visible h-[280px] sm:h-[360px] md:h-[460px] lg:h-[520px]"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, amount: 0.3 }}
