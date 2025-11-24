@@ -52,6 +52,18 @@ export default function AdminCategories() {
     return complaints?.filter((c) => c.category === categoryName).length || 0;
   };
 
+  const getColorValue = (colorName: string) => {
+    const colorMap: Record<string, string> = {
+      blue: '#3b82f6',
+      purple: '#a855f7',
+      red: '#ef4444',
+      green: '#22c55e',
+      orange: '#f97316',
+      gray: '#6b7280'
+    };
+    return colorMap[colorName.toLowerCase()] || '#3b82f6';
+  };
+
   const filteredCategories = categories?.filter((cat) =>
     cat.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
@@ -161,8 +173,8 @@ export default function AdminCategories() {
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <div
-                      className={`w-3 h-3 rounded-full`}
-                      style={{ backgroundColor: category.color }}
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: getColorValue(category.color) }}
                     />
                     <span className="capitalize">{category.color}</span>
                   </div>
