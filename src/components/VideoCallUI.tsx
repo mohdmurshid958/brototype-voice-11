@@ -114,12 +114,29 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
     try {
       if (isMicOn) {
         await call.microphone.disable();
+        setIsMicOn(false);
       } else {
+        // Request permission explicitly if needed
+        try {
+          await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (permError) {
+          toast({
+            title: "Microphone Permission Required",
+            description: "Please allow microphone access in your browser settings.",
+            variant: "destructive",
+          });
+          return;
+        }
         await call.microphone.enable();
+        setIsMicOn(true);
       }
-      setIsMicOn(!isMicOn);
     } catch (error) {
       console.error("Error toggling microphone:", error);
+      toast({
+        title: "Microphone Error",
+        description: "Failed to toggle microphone. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -128,12 +145,29 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
     try {
       if (isCameraOn) {
         await call.camera.disable();
+        setIsCameraOn(false);
       } else {
+        // Request permission explicitly if needed
+        try {
+          await navigator.mediaDevices.getUserMedia({ video: true });
+        } catch (permError) {
+          toast({
+            title: "Camera Permission Required",
+            description: "Please allow camera access in your browser settings.",
+            variant: "destructive",
+          });
+          return;
+        }
         await call.camera.enable();
+        setIsCameraOn(true);
       }
-      setIsCameraOn(!isCameraOn);
     } catch (error) {
       console.error("Error toggling camera:", error);
+      toast({
+        title: "Camera Error",
+        description: "Failed to toggle camera. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -147,10 +181,29 @@ export const VideoCallUI = ({ onLeave, callId }: VideoCallUIProps) => {
         await call.screenShare.disable();
         console.log("Screen share disabled");
         setIsScreenSharing(false);
+        toast({
+          title: "Screen Sharing Stopped",
+          description: "You stopped sharing your screen.",
+        });
       } else {
-        await call.screenShare.enable();
-        console.log("Screen share enabled");
-        setIsScreenSharing(true);
+        // Request screen share permission
+        try {
+          await navigator.mediaDevices.getDisplayMedia({ video: true });
+          await call.screenShare.enable();
+          console.log("Screen share enabled");
+          setIsScreenSharing(true);
+          toast({
+            title: "Screen Sharing Started",
+            description: "You are now sharing your screen.",
+          });
+        } catch (permError) {
+          console.error("Screen share permission denied:", permError);
+          toast({
+            title: "Screen Share Cancelled",
+            description: "Screen sharing was cancelled or permission denied.",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error("Error toggling screen share:", error);

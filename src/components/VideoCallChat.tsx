@@ -46,17 +46,19 @@ export const VideoCallChat = ({ callId }: VideoCallChatProps) => {
 
     fetchUserProfile();
 
-    // Connect to Socket.IO
+    // Connect to Socket.IO - use HTTPS (Socket.IO handles WebSocket upgrade)
     const projectId = "vlqyebuhvebsvpdtqlxq";
-    const socketUrl = `wss://${projectId}.supabase.co/functions/v1/video-call-socket?callId=${callId}`;
+    const socketUrl = `https://${projectId}.supabase.co/functions/v1/video-call-socket`;
     
-    console.log("Connecting to WebSocket:", socketUrl);
+    console.log("Connecting to Socket.IO:", socketUrl);
     
     socketRef.current = io(socketUrl, {
-      transports: ["websocket"],
+      query: { callId }, // Pass callId as query parameter
+      transports: ["polling", "websocket"], // Try polling first, then upgrade to websocket
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      timeout: 10000,
     });
 
     socketRef.current.on("connect", () => {

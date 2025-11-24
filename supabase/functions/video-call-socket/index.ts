@@ -1,21 +1,39 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+};
+
 const clients = new Map<string, Set<WebSocket>>();
 
 serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   const url = new URL(req.url);
   const callId = url.searchParams.get("callId");
   
   if (!callId) {
-    return new Response("Missing callId parameter", { status: 400 });
+    return new Response(JSON.stringify({ error: "Missing callId parameter" }), { 
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 
   const upgrade = req.headers.get("upgrade") || "";
   if (upgrade.toLowerCase() !== "websocket") {
-    return new Response("Expected WebSocket", { status: 426 });
+    return new Response(JSON.stringify({ error: "Expected WebSocket" }), { 
+      status: 426,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 
-  const { socket, response } = Deno.upgradeWebSocket(req);
+  try {
+    const { socket, response } = Deno.upgradeWebSocket(req);
 
   socket.onopen = () => {
     console.log(`Client connected to call: ${callId}`);
@@ -62,4 +80,11 @@ serve(async (req) => {
   };
 
   return response;
+  } catch (error) {
+    console.error("Error upgrading WebSocket:", error);
+    return new Response(JSON.stringify({ error: "Failed to upgrade connection" }), { 
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
 });
