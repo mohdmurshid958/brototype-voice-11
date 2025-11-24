@@ -1,16 +1,19 @@
 import { useState } from "react";
-import { Video, Phone, Search, Check, X, Clock } from "lucide-react";
+import { Video, Phone, Search, Check, X, Clock, MessageSquare, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "react-router-dom";
 
 const Chat = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCall, setSelectedCall] = useState<string | null>(null);
 
   // Mock data for call requests
   const callRequests = [
@@ -266,7 +269,11 @@ const Chat = () => {
                     </div>
                   </div>
 
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setSelectedCall(call.id)}
+                  >
                     View Details
                   </Button>
                 </div>
@@ -274,6 +281,118 @@ const Chat = () => {
             ))}
           </TabsContent>
         </Tabs>
+
+        {/* Call Details Sheet */}
+        <Sheet open={!!selectedCall} onOpenChange={(open) => !open && setSelectedCall(null)}>
+          <SheetContent className="w-full sm:max-w-lg">
+            {selectedCall && (() => {
+              const call = pastCalls.find(c => c.id === selectedCall);
+              if (!call) return null;
+              
+              return (
+                <>
+                  <SheetHeader>
+                    <SheetTitle>Call Details</SheetTitle>
+                    <SheetDescription>
+                      Complete information about this video call
+                    </SheetDescription>
+                  </SheetHeader>
+
+                  <div className="mt-6 space-y-6">
+                    {/* Student Info */}
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-16 w-16">
+                        <AvatarImage src={call.studentAvatar} />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                          {call.studentName.split(" ").map(n => n[0]).join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-semibold text-lg text-foreground">{call.studentName}</h3>
+                        <Badge variant="outline" className="mt-1">{call.studentId}</Badge>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Call Information */}
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Date & Time</p>
+                          <p className="text-sm text-muted-foreground">{call.date}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Duration</p>
+                          <p className="text-sm text-muted-foreground">{call.duration}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Check className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Status</p>
+                          <Badge className="mt-1 bg-green-500">Completed</Badge>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Video className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Call Type</p>
+                          <p className="text-sm text-muted-foreground">Video Call</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Call Notes */}
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-3">
+                        <MessageSquare className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground mb-2">Call Notes</p>
+                          <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                            <p className="text-sm text-muted-foreground">
+                              Discussed complaint resolution and provided necessary guidance. 
+                              Student was satisfied with the explanation and no further action required.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Actions */}
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={() => navigate(`/video-call/${call.id}`)}
+                        className="flex-1"
+                      >
+                        <Video className="h-4 w-4 mr-2" />
+                        Call Again
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => setSelectedCall(null)}
+                        className="flex-1"
+                      >
+                        Close
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );
