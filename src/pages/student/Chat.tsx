@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Video, Search, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,68 +8,19 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { useVideoCalls } from "@/hooks/useVideoCalls";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const Chat = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [admins, setAdmins] = useState<any[]>([]);
-  const [selectedAdminId, setSelectedAdminId] = useState<string>("");
   const [isCreating, setIsCreating] = useState(false);
   const { calls, isLoading, createCall } = useVideoCalls();
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchAdmins();
-  }, []);
-
-  const fetchAdmins = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('user_id, profiles(id, full_name, avatar_url)')
-        .eq('role', 'admin');
-
-      if (error) throw error;
-
-      const adminList = data
-        .filter(item => item.profiles)
-        .map(item => ({
-          id: item.profiles!.id,
-          name: item.profiles!.full_name || 'Admin',
-          avatar: item.profiles!.avatar_url,
-        }));
-
-      setAdmins(adminList);
-      if (adminList.length > 0) {
-        setSelectedAdminId(adminList[0].id);
-      }
-    } catch (error) {
-      console.error('Error fetching admins:', error);
-    }
-  };
-
   const handleStartCall = async () => {
-    if (!selectedAdminId) {
-      toast({
-        title: 'Error',
-        description: 'Please select an admin to call',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     setIsCreating(true);
     try {
-      const result = await createCall(selectedAdminId);
+      const result = await createCall();
       if (result) {
         navigate(`/video-call/${result.call.stream_call_id}`);
       }
@@ -129,42 +80,24 @@ const Chat = () => {
 
         {/* New Call Card */}
         <Card className="mb-6 p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <div className="space-y-4">
+          <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold text-foreground mb-2">Start New Video Call</h2>
               <p className="text-sm text-muted-foreground">Request a video consultation with an admin</p>
             </div>
             
-            <div className="flex items-end gap-3">
-              <div className="flex-1">
-                <label className="text-sm font-medium mb-2 block">Select Admin</label>
-                <Select value={selectedAdminId} onValueChange={setSelectedAdminId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose an admin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {admins.map((admin) => (
-                      <SelectItem key={admin.id} value={admin.id}>
-                        {admin.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <Button
-                onClick={handleStartCall}
-                disabled={isCreating || !selectedAdminId}
-                size="lg"
-                className="rounded-full h-12 w-12 p-0"
-              >
-                {isCreating ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Plus className="h-5 w-5" />
-                )}
-              </Button>
-            </div>
+            <Button
+              onClick={handleStartCall}
+              disabled={isCreating}
+              size="lg"
+              className="rounded-full h-14 w-14 p-0"
+            >
+              {isCreating ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                <Video className="h-6 w-6" />
+              )}
+            </Button>
           </div>
         </Card>
 

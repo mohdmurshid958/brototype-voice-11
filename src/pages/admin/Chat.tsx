@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Video, Search, Check, X, Loader2, Calendar } from "lucide-react";
+import { Video, Search, Check, X, Loader2, Calendar, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -9,16 +9,89 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { useVideoCalls } from "@/hooks/useVideoCalls";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Chat = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [profiles, setProfiles] = useState<Record<string, any>>({});
-  const { calls, isLoading, updateCallStatus } = useVideoCalls();
+  const [students, setStudents] = useState<any[]>([]);
+  const { calls, isLoading, updateCallStatus, createCall } = useVideoCalls();
 
   useEffect(() => {
     fetchProfiles();
+    fetchStudents();
   }, [calls]);
+
+  useEffect(() => {
+    // Subscribe to new pending calls for toast notifications
+    const channel = supabase
+      .channel('pending_calls_notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'video_calls',
+          filter: 'status=eq.pending',
+        },
+        async (payload) => {
+          const call = payload.new as any;
+          // Fetch student profile for the toast
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, avatar_url')
+            .eq('id', call.student_id)
+            .single();
+
+          const studentName = profile?.full_name || 'A student';
+
+          toast(
+            <div className="flex items-center gap-3 w-full">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={profile?.avatar_url} />
+                <AvatarFallback>{studentName.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <p className="font-semibold">{studentName} is calling</p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={async () => {
+                    await updateCallStatus(call.id, 'active');
+                    navigate(`/video-call/${call.stream_call_id}`);
+                    toast.dismiss();
+                  }}
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={async () => {
+                    await updateCallStatus(call.id, 'cancelled');
+                    toast.dismiss();
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>,
+            {
+              duration: 30000,
+              position: 'bottom-center',
+            }
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [navigate, updateCallStatus]);
 
   const fetchProfiles = async () => {
     const userIds = [...new Set(calls.map(c => c.student_id))];
@@ -40,6 +113,32 @@ const Chat = () => {
       setProfiles(profileMap);
     } catch (error) {
       console.error('Error fetching profiles:', error);
+    }
+  };
+
+  const fetchStudents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('user_id, profiles(id, full_name, avatar_url, email)')
+        .eq('role', 'student');
+
+      if (error) throw error;
+
+      const studentList = data
+        .filter(item => item.profiles)
+        .map(item => item.profiles);
+
+      setStudents(studentList as any[]);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    }
+  };
+
+  const handleCallStudent = async (studentId: string) => {
+    const result = await createCall(undefined, studentId);
+    if (result) {
+      navigate(`/video-call/${result.call.stream_call_id}`);
     }
   };
 
@@ -158,8 +257,9 @@ const Chat = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="pending" className="w-full">
+        <Tabs defaultValue="students" className="w-full">
           <TabsList className="w-full justify-start mb-6">
+            <TabsTrigger value="students">Students</TabsTrigger>
             <TabsTrigger value="pending">
               Pending {pendingCalls.length > 0 && `(${pendingCalls.length})`}
             </TabsTrigger>
@@ -168,6 +268,41 @@ const Chat = () => {
             </TabsTrigger>
             <TabsTrigger value="past">Past</TabsTrigger>
           </TabsList>
+
+          {/* Students Tab */}
+          <TabsContent value="students" className="space-y-3">
+            {students.length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">No students available</p>
+              </Card>
+            ) : (
+              students.map((student) => (
+                <Card key={student.id} className="p-4">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={student.avatar_url} />
+                      <AvatarFallback>
+                        {student.full_name?.charAt(0) || 'S'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground truncate">
+                        {student.full_name || 'Student'}
+                      </h3>
+                      <p className="text-sm text-muted-foreground truncate">{student.email}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => handleCallStudent(student.id)}
+                    >
+                      <Phone className="h-4 w-4 mr-1" />
+                      Call
+                    </Button>
+                  </div>
+                </Card>
+              ))
+            )}
+          </TabsContent>
 
           {/* Pending Tab */}
           <TabsContent value="pending" className="space-y-3">
