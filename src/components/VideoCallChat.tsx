@@ -28,9 +28,9 @@ export const VideoCallChat = ({ callId }: VideoCallChatProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Fetch existing messages
+    // Fetch existing messages with user profile info
     const fetchMessages = async () => {
-      const { data, error } = await supabase
+      const { data: messagesData, error } = await supabase
         .from("video_call_messages")
         .select("*")
         .eq("call_id", callId)
@@ -38,14 +38,33 @@ export const VideoCallChat = ({ callId }: VideoCallChatProps) => {
 
       if (error) {
         console.error("Error fetching messages:", error);
-      } else if (data) {
-        setMessages(data);
+        return;
+      }
+
+      if (messagesData) {
+        // Fetch user profiles for all unique user IDs
+        const userIds = [...new Set(messagesData.map(msg => msg.user_id))];
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", userIds);
+
+        const profileMap = new Map(
+          profilesData?.map(p => [p.id, p.full_name]) || []
+        );
+
+        const messagesWithNames = messagesData.map(msg => ({
+          ...msg,
+          sender_name: profileMap.get(msg.user_id) || "Unknown User"
+        }));
+        
+        setMessages(messagesWithNames);
       }
     };
 
     fetchMessages();
 
-    // Subscribe to new messages
+    // Subscribe to new messages in real-time
     const channel = supabase
       .channel(`call-messages-${callId}`)
       .on(
@@ -56,11 +75,27 @@ export const VideoCallChat = ({ callId }: VideoCallChatProps) => {
           table: "video_call_messages",
           filter: `call_id=eq.${callId}`,
         },
-        (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message]);
+        async (payload) => {
+          console.log("New message received:", payload);
+          
+          // Fetch sender profile info
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", payload.new.user_id)
+            .single();
+          
+          const newMessage = {
+            ...payload.new,
+            sender_name: profileData?.full_name || "Unknown User"
+          } as Message;
+          
+          setMessages((prev) => [...prev, newMessage]);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("Subscription status:", status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -125,7 +160,10 @@ export const VideoCallChat = ({ callId }: VideoCallChatProps) => {
                     : "bg-[#3c4043] text-white"
                 }`}
               >
-                <p className="text-sm">{msg.message}</p>
+                {msg.user_id !== user?.id && (
+                  <p className="text-xs text-white/70 mb-1">{msg.sender_name}</p>
+                )}
+                <p className="text-sm break-words">{msg.message}</p>
               </div>
               <span className="text-xs text-white/50 mt-1">
                 {new Date(msg.created_at).toLocaleTimeString([], {

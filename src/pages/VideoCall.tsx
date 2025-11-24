@@ -86,7 +86,10 @@ const VideoCallContent = () => {
       if (call) {
         const duration = Math.floor((Date.now() - callStartTime) / 1000);
         updateCallStatus(callId!, 'completed', duration);
-        call.leave();
+        // Check if call is still active before leaving
+        if (call.state.callingState !== 'left') {
+          call.leave().catch(err => console.warn('Error leaving call:', err));
+        }
       }
     };
   }, [client, streamCallId, callId]);
@@ -95,7 +98,10 @@ const VideoCallContent = () => {
     if (call && callId) {
       const duration = Math.floor((Date.now() - callStartTime) / 1000);
       await updateCallStatus(callId, 'completed', duration);
-      await call.leave();
+      // Check if call is still active before leaving
+      if (call.state.callingState !== 'left') {
+        await call.leave().catch(err => console.warn('Error leaving call:', err));
+      }
     }
     navigate(-1);
   };
