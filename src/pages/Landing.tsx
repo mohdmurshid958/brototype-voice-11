@@ -8,6 +8,7 @@ import DisplayCards from "@/components/ui/display-cards";
 import { DottedSurface } from "@/components/ui/dotted-surface";
 import { CTASection } from "@/components/ui/cta-with-rectangle";
 import { BrotalSection } from "@/components/BrotalSection";
+import { StickyFeatures } from "@/components/StickyFeatures";
 
 export default function Landing() {
   const containerVariants = {
@@ -172,51 +173,7 @@ export default function Landing() {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-20 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/4 right-1/3 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        </div>
-        <div className="container mx-auto">
-          <motion.div 
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Powerful Features</h2>
-            <p className="text-muted-foreground text-lg md:text-xl">Everything you need for effective complaint management</p>
-          </motion.div>
-
-          <motion.div 
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={containerVariants}
-          >
-            {[
-              { icon: Shield, title: "Secure Login", desc: "Protected student and admin access with encrypted authentication" },
-              { icon: TrendingUp, title: "Real-time Tracking", desc: "Monitor complaint status instantly with live updates" },
-              { icon: Bell, title: "Fast Response", desc: "Quick admin acknowledgment within 24 hours" },
-              { icon: Users, title: "Transparency", desc: "Full visibility into the complaint resolution process" },
-            ].map((feature, i) => (
-              <motion.div key={i} variants={itemVariants}>
-                <Card className="p-8 hover:border-primary transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-2 h-full group relative overflow-hidden bg-surface-elevated">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="relative z-10">
-                    <div className="w-14 h-14 mb-4 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <feature.icon className="h-7 w-7 text-primary" />
-                    </div>
-                    <h3 className="font-bold text-lg mb-3">{feature.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+      <StickyFeatures />
 
       {/* Complaints Demo Section */}
       <section className="py-20 px-4 relative overflow-hidden">
