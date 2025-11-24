@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Calendar, User, Tag, Send, Paperclip, ExternalLink } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ArrowLeft, Calendar, User, Tag, Send, Paperclip, Eye } from "lucide-react";
 import { useComplaint, useComplaintResponses, useCreateComplaintResponse } from "@/hooks/useComplaints";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
@@ -17,6 +18,7 @@ export default function AdminComplaintDetail() {
   const { user } = useAuth();
   const [newResponse, setNewResponse] = useState("");
   const [newStatus, setNewStatus] = useState("in-progress");
+  const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
 
   const { data: complaint, isLoading: complaintLoading } = useComplaint(id || "");
   const { data: responses, isLoading: responsesLoading } = useComplaintResponses(id || "");
@@ -132,17 +134,32 @@ export default function AdminComplaintDetail() {
                     <Paperclip className="h-4 w-4" />
                     Attachment
                   </h3>
-                  <a
-                    href={complaint.attachment_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-md transition-colors"
+                  <Button
+                    variant="outline"
+                    onClick={() => setAttachmentDialogOpen(true)}
+                    className="inline-flex items-center gap-2"
                   >
-                    <ExternalLink className="h-4 w-4" />
+                    <Eye className="h-4 w-4" />
                     <span className="text-sm font-medium">View Attachment</span>
-                  </a>
+                  </Button>
                 </div>
               )}
+
+              {/* Attachment Dialog */}
+              <Dialog open={attachmentDialogOpen} onOpenChange={setAttachmentDialogOpen}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                  <DialogHeader>
+                    <DialogTitle>Attachment</DialogTitle>
+                  </DialogHeader>
+                  <div className="flex items-center justify-center bg-muted/30 rounded-lg p-4">
+                    <img 
+                      src={complaint.attachment_url} 
+                      alt="Complaint attachment" 
+                      className="max-w-full h-auto rounded-md"
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
 
               {/* Responses */}
               <div>
