@@ -1,155 +1,199 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import {
+  Video,
+  VideoOff,
+  Mic,
+  MicOff,
+  Phone,
+  Monitor,
+  MoreVertical,
+  MessageSquare,
+  Settings,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { StreamCall } from '@stream-io/video-react-sdk';
-import { useStreamVideo } from "@/hooks/useStreamVideo";
-import { useVideoCalls } from "@/hooks/useVideoCalls";
-import { StreamVideoProvider } from "@/components/StreamVideoProvider";
-import { supabase } from "@/integrations/supabase/client";
-import { VideoCallUI } from "@/components/VideoCallUI";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-const VideoCallContent = () => {
+const VideoCall = () => {
   const navigate = useNavigate();
-  const { callId } = useParams(); // This is now the database UUID
-  const { client, isLoading: isClientLoading } = useStreamVideo();
-  const { updateCallStatus } = useVideoCalls();
-  const [call, setCall] = useState<any>(null);
-  const [isJoining, setIsJoining] = useState(false);
-  const [callStartTime] = useState(Date.now());
-  const [streamCallId, setStreamCallId] = useState<string | null>(null);
+  const { callId } = useParams();
+  const [isVideoOn, setIsVideoOn] = useState(true);
+  const [isAudioOn, setIsAudioOn] = useState(true);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [duration, setDuration] = useState(0);
+
+  // Mock participant data
+  const participant = {
+    name: "Dr. Sarah Johnson",
+    avatar: "",
+    role: "Admin",
+  };
 
   useEffect(() => {
-    // Fetch the stream_call_id from database using the callId (UUID)
-    const fetchCallData = async () => {
-      if (!callId) return;
-      
-      const { data, error } = await supabase
-        .from('video_calls')
-        .select('stream_call_id')
-        .eq('id', callId)
-        .single();
+    const timer = setInterval(() => {
+      setDuration((prev) => prev + 1);
+    }, 1000);
 
-      if (error) {
-        console.error('Error fetching call data:', error);
-        return;
-      }
+    return () => clearInterval(timer);
+  }, []);
 
-      setStreamCallId(data.stream_call_id);
-    };
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
 
-    fetchCallData();
-  }, [callId]);
-
-  useEffect(() => {
-    if (!client || !streamCallId || !callId) return;
-
-    const initCall = async () => {
-      setIsJoining(true);
-      try {
-        console.log('Initializing call with ID:', streamCallId);
-        
-        const newCall = client.call('default', streamCallId);
-        
-        // Get or create the call - this allows both users to join the same call
-        await newCall.getOrCreate();
-        
-        // Join the call
-        await newCall.join({ 
-          create: false 
-        });
-        
-        console.log('Successfully joined call');
-        
-        setCall(newCall);
-        
-        // Try to enable microphone and camera (optional - user can enable manually)
-        try {
-          await newCall.microphone.enable();
-          console.log('Microphone enabled');
-        } catch (micError) {
-          console.warn('Could not enable microphone:', micError);
-        }
-        
-        try {
-          await newCall.camera.enable();
-          console.log('Camera enabled');
-        } catch (camError) {
-          console.warn('Could not enable camera:', camError);
-        }
-        
-        // Update call status to active using database UUID
-        await updateCallStatus(callId, 'active');
-      } catch (error) {
-        console.error('Error joining call:', error);
-        console.error('Call ID:', streamCallId);
-        console.error('Client:', client);
-      } finally {
-        setIsJoining(false);
-      }
-    };
-
-    initCall();
-
-    return () => {
-      if (call) {
-        const duration = Math.floor((Date.now() - callStartTime) / 1000);
-        updateCallStatus(callId!, 'completed', duration);
-        // Check if call is still active before leaving
-        if (call.state.callingState !== 'left') {
-          call.leave().catch(err => console.warn('Error leaving call:', err));
-        }
-      }
-    };
-  }, [client, streamCallId, callId]);
-
-  const handleEndCall = async () => {
-    if (call && callId) {
-      const duration = Math.floor((Date.now() - callStartTime) / 1000);
-      await updateCallStatus(callId, 'completed', duration);
-      // Check if call is still active before leaving
-      if (call.state.callingState !== 'left') {
-        await call.leave().catch(err => console.warn('Error leaving call:', err));
-      }
-    }
+  const handleEndCall = () => {
     navigate(-1);
   };
 
-  if (isClientLoading || isJoining) {
-    return (
-      <div className="fixed inset-0 bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Connecting to call...</p>
+  return (
+    <div className="fixed inset-0 bg-black flex flex-col">
+      {/* Top Bar */}
+      <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div className="flex items-center gap-3">
+            <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-white font-medium">{formatDuration(duration)}</span>
+          </div>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                <MoreVertical className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Chat
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-    );
-  }
 
-  if (!call) {
-    return (
-      <div className="fixed inset-0 bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-muted-foreground">Failed to connect to call</p>
-          <Button onClick={() => navigate(-1)} className="mt-4">
-            Go Back
+      {/* Main Video Area */}
+      <div className="flex-1 relative">
+        {/* Remote Video (Main) */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
+          {isVideoOn ? (
+            <div className="text-center">
+              <Avatar className="h-32 w-32 mx-auto mb-4 ring-4 ring-primary/50">
+                <AvatarImage src={participant.avatar} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-4xl">
+                  {participant.name.split(" ").map(n => n[0]).join("")}
+                </AvatarFallback>
+              </Avatar>
+              <h2 className="text-2xl font-semibold text-white mb-1">{participant.name}</h2>
+              <p className="text-gray-400">{participant.role}</p>
+            </div>
+          ) : (
+            <div className="text-center">
+              <div className="h-32 w-32 mx-auto mb-4 rounded-full bg-gray-700 flex items-center justify-center">
+                <VideoOff className="h-16 w-16 text-gray-500" />
+              </div>
+              <h2 className="text-2xl font-semibold text-white mb-1">{participant.name}</h2>
+              <p className="text-gray-400">Video is off</p>
+            </div>
+          )}
+        </div>
+
+        {/* Local Video (Picture-in-Picture) */}
+        <Card className="absolute top-20 right-4 w-48 h-36 overflow-hidden border-2 border-primary/50 shadow-2xl">
+          <div className="relative w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+            {isVideoOn ? (
+              <div className="text-center">
+                <Avatar className="h-16 w-16 mx-auto">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                    You
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            ) : (
+              <VideoOff className="h-8 w-8 text-muted-foreground" />
+            )}
+            <div className="absolute bottom-2 left-2 text-xs text-white font-medium">
+              You
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Bottom Control Bar */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-6">
+        <div className="max-w-3xl mx-auto flex items-center justify-center gap-4">
+          {/* Microphone */}
+          <Button
+            variant={isAudioOn ? "secondary" : "destructive"}
+            size="lg"
+            className="rounded-full h-14 w-14 p-0"
+            onClick={() => setIsAudioOn(!isAudioOn)}
+          >
+            {isAudioOn ? (
+              <Mic className="h-6 w-6" />
+            ) : (
+              <MicOff className="h-6 w-6" />
+            )}
+          </Button>
+
+          {/* Video */}
+          <Button
+            variant={isVideoOn ? "secondary" : "destructive"}
+            size="lg"
+            className="rounded-full h-14 w-14 p-0"
+            onClick={() => setIsVideoOn(!isVideoOn)}
+          >
+            {isVideoOn ? (
+              <Video className="h-6 w-6" />
+            ) : (
+              <VideoOff className="h-6 w-6" />
+            )}
+          </Button>
+
+          {/* Screen Share */}
+          <Button
+            variant={isScreenSharing ? "default" : "secondary"}
+            size="lg"
+            className="rounded-full h-14 w-14 p-0"
+            onClick={() => setIsScreenSharing(!isScreenSharing)}
+          >
+            <Monitor className="h-6 w-6" />
+          </Button>
+
+          {/* End Call */}
+          <Button
+            variant="destructive"
+            size="lg"
+            className="rounded-full h-14 w-14 p-0 bg-red-500 hover:bg-red-600"
+            onClick={handleEndCall}
+          >
+            <Phone className="h-6 w-6 rotate-[135deg]" />
           </Button>
         </div>
+
+        {/* Call Info */}
+        <div className="text-center mt-4">
+          <p className="text-white/60 text-sm">
+            {isScreenSharing && "Screen sharing active • "}
+            {!isAudioOn && "Microphone off • "}
+            {!isVideoOn && "Camera off"}
+          </p>
+        </div>
       </div>
-    );
-  }
-
-  return (
-    <StreamVideoProvider client={client}>
-      <StreamCall call={call}>
-        <VideoCallUI onLeave={handleEndCall} callId={callId!} />
-      </StreamCall>
-    </StreamVideoProvider>
+    </div>
   );
-};
-
-const VideoCall = () => {
-  return <VideoCallContent />;
 };
 
 export default VideoCall;

@@ -1,194 +1,93 @@
-import { useState, useEffect } from "react";
-import { Video, Search, Check, X, Loader2, Calendar, Phone, PhoneOff } from "lucide-react";
+import { useState } from "react";
+import { Video, Phone, Search, Check, X, Clock, MessageSquare, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "react-router-dom";
-import { useVideoCalls } from "@/hooks/useVideoCalls";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 const Chat = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [profiles, setProfiles] = useState<Record<string, any>>({});
-  const [students, setStudents] = useState<any[]>([]);
-  const { calls, isLoading, updateCallStatus, createCall } = useVideoCalls();
+  const [selectedCall, setSelectedCall] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchProfiles();
-    fetchStudents();
-  }, [calls]);
+  // Mock data for call requests
+  const callRequests = [
+    {
+      id: "1",
+      studentName: "John Smith",
+      studentAvatar: "",
+      studentId: "STU2024001",
+      requestTime: "2 minutes ago",
+      status: "pending",
+      topic: "Complaint #C-1234 Discussion",
+    },
+    {
+      id: "2",
+      studentName: "Emma Wilson",
+      studentAvatar: "",
+      studentId: "STU2024002",
+      requestTime: "15 minutes ago",
+      status: "pending",
+      topic: "General Inquiry",
+    },
+    {
+      id: "3",
+      studentName: "Michael Brown",
+      studentAvatar: "",
+      studentId: "STU2024003",
+      requestTime: "1 hour ago",
+      status: "pending",
+      topic: "Account Issue",
+    },
+  ];
 
-  useEffect(() => {
-    // Subscribe to new pending calls for toast notifications
-    const channel = supabase
-      .channel('pending_calls_notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'video_calls',
-          filter: 'status=eq.pending',
-        },
-        async (payload) => {
-          const call = payload.new as any;
-          // Fetch student profile for the toast
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('full_name, avatar_url')
-            .eq('id', call.student_id)
-            .single();
-
-          const studentName = profile?.full_name || 'A student';
-
-          toast(
-            <div className="flex items-center gap-3 w-full">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={profile?.avatar_url} />
-                <AvatarFallback>{studentName.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="font-semibold">{studentName} is calling</p>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700"
-                  onClick={async () => {
-                    await updateCallStatus(call.id, 'active');
-                    navigate(`/video-call/${call.id}`);
-                    toast.dismiss();
-                  }}
-                >
-                  <Phone className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  className="bg-red-600 hover:bg-red-700"
-                  onClick={async () => {
-                    await updateCallStatus(call.id, 'cancelled');
-                    toast.dismiss();
-                  }}
-                >
-                  <PhoneOff className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>,
-            {
-              duration: 30000,
-              position: 'bottom-center',
-            }
-          );
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [navigate, updateCallStatus]);
-
-  const fetchProfiles = async () => {
-    const userIds = [...new Set(calls.map(c => c.student_id))];
-    if (userIds.length === 0) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url')
-        .in('id', userIds);
-
-      if (error) throw error;
-
-      const profileMap = data.reduce((acc, profile) => {
-        acc[profile.id] = profile;
-        return acc;
-      }, {} as Record<string, any>);
-
-      setProfiles(profileMap);
-    } catch (error) {
-      console.error('Error fetching profiles:', error);
-    }
+  const activeCall = {
+    id: "4",
+    studentName: "Sarah Davis",
+    studentAvatar: "",
+    studentId: "STU2024004",
+    duration: "5:32",
+    topic: "Complaint Follow-up",
   };
 
-  const fetchStudents = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('user_id, profiles(id, full_name, avatar_url, email)')
-        .eq('role', 'student');
+  const pastCalls = [
+    {
+      id: "5",
+      studentName: "James Taylor",
+      studentAvatar: "",
+      studentId: "STU2024005",
+      date: "Today, 1:15 PM",
+      duration: "12 min",
+      status: "completed",
+    },
+    {
+      id: "6",
+      studentName: "Lisa Anderson",
+      studentAvatar: "",
+      studentId: "STU2024006",
+      date: "Today, 11:30 AM",
+      duration: "8 min",
+      status: "completed",
+    },
+    {
+      id: "7",
+      studentName: "David Martinez",
+      studentAvatar: "",
+      studentId: "STU2024007",
+      date: "Yesterday, 3:45 PM",
+      duration: "20 min",
+      status: "completed",
+    },
+  ];
 
-      if (error) throw error;
-
-      const studentList = data
-        .filter(item => item.profiles)
-        .map(item => item.profiles);
-
-      setStudents(studentList as any[]);
-    } catch (error) {
-      console.error('Error fetching students:', error);
-    }
+  const handleAcceptCall = (callId: string) => {
+    navigate(`/video-call/${callId}`);
   };
-
-  const handleCallStudent = async (studentId: string) => {
-    const result = await createCall(undefined, studentId);
-    if (result) {
-      navigate(`/video-call/${result.call.id}`);
-    }
-  };
-
-  const handleAcceptCall = async (call: any) => {
-    await updateCallStatus(call.id, 'active');
-    navigate(`/video-call/${call.id}`);
-  };
-
-  const handleRejectCall = async (callId: string) => {
-    await updateCallStatus(callId, 'cancelled');
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    if (days === 0) {
-      return `Today, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
-    } else if (days === 1) {
-      return `Yesterday, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
-    }
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: any; label: string }> = {
-      completed: { variant: "default", label: "Completed" },
-      pending: { variant: "secondary", label: "Pending" },
-      active: { variant: "default", label: "Active" },
-      missed: { variant: "destructive", label: "Missed" },
-      cancelled: { variant: "outline", label: "Cancelled" },
-    };
-    
-    const config = variants[status] || variants.pending;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
-
-  const pendingCalls = calls.filter(c => c.status === 'pending');
-  const activeCalls = calls.filter(c => c.status === 'active');
-  const pastCalls = calls.filter(c => ['completed', 'cancelled', 'missed'].includes(c.status));
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -201,43 +100,38 @@ const Chat = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                <Calendar className="h-5 w-5 text-yellow-600" />
-              </div>
+          <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-foreground">{pendingCalls.length}</p>
-                <p className="text-sm text-muted-foreground">Pending Requests</p>
+                <p className="text-sm text-muted-foreground mb-1">Pending Requests</p>
+                <p className="text-2xl font-bold text-foreground">{callRequests.length}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                <Clock className="h-6 w-6 text-primary" />
               </div>
             </div>
           </Card>
 
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                <Video className="h-5 w-5 text-green-600" />
-              </div>
+          <Card className="p-4 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-foreground">{activeCalls.length}</p>
-                <p className="text-sm text-muted-foreground">Active Calls</p>
+                <p className="text-sm text-muted-foreground mb-1">Active Calls</p>
+                <p className="text-2xl font-bold text-foreground">1</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center">
+                <Video className="h-6 w-6 text-green-500" />
               </div>
             </div>
           </Card>
 
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                <Check className="h-5 w-5 text-primary" />
-              </div>
+          <Card className="p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-foreground">
-                  {calls.filter(c => 
-                    c.status === 'completed' && 
-                    new Date(c.created_at).toDateString() === new Date().toDateString()
-                  ).length}
-                </p>
-                <p className="text-sm text-muted-foreground">Today's Calls</p>
+                <p className="text-sm text-muted-foreground mb-1">Today's Calls</p>
+                <p className="text-2xl font-bold text-foreground">{pastCalls.filter(c => c.date.includes("Today")).length}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <Check className="h-6 w-6 text-blue-500" />
               </div>
             </div>
           </Card>
@@ -248,7 +142,7 @@ const Chat = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search calls..."
+              placeholder="Search by student name or ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -257,178 +151,248 @@ const Chat = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="students" className="w-full">
+        <Tabs defaultValue="pending" className="w-full">
           <TabsList className="w-full justify-start mb-6">
-            <TabsTrigger value="students">Students</TabsTrigger>
             <TabsTrigger value="pending">
-              Pending {pendingCalls.length > 0 && `(${pendingCalls.length})`}
+              Pending ({callRequests.length})
             </TabsTrigger>
             <TabsTrigger value="active">
-              Active {activeCalls.length > 0 && `(${activeCalls.length})`}
+              Active (1)
             </TabsTrigger>
-            <TabsTrigger value="past">Past</TabsTrigger>
+            <TabsTrigger value="past">
+              Past Calls
+            </TabsTrigger>
           </TabsList>
 
-          {/* Students Tab */}
-          <TabsContent value="students" className="space-y-3">
-            {students.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground">No students available</p>
-              </Card>
-            ) : (
-              students.map((student) => (
-                <Card key={student.id} className="p-4">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={student.avatar_url} />
-                      <AvatarFallback>
-                        {student.full_name?.charAt(0) || 'S'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground truncate">
-                        {student.full_name || 'Student'}
-                      </h3>
-                      <p className="text-sm text-muted-foreground truncate">{student.email}</p>
+          {/* Pending Requests */}
+          <TabsContent value="pending" className="space-y-3">
+            {callRequests.map((request) => (
+              <Card key={request.id} className="p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-14 w-14">
+                    <AvatarImage src={request.studentAvatar} />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                      {request.studentName.split(" ").map(n => n[0]).join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-foreground">{request.studentName}</h3>
+                      <Badge variant="outline" className="text-xs">{request.studentId}</Badge>
                     </div>
+                    <p className="text-sm text-foreground mb-1">{request.topic}</p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>Requested {request.requestTime}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
                     <Button
-                      size="sm"
-                      onClick={() => handleCallStudent(student.id)}
+                      onClick={() => handleAcceptCall(request.id)}
+                      className="rounded-full"
+                      size="default"
                     >
-                      <Phone className="h-4 w-4 mr-1" />
-                      Call
+                      <Video className="h-4 w-4 mr-2" />
+                      Accept
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="rounded-full"
+                    >
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
-                </Card>
-              ))
-            )}
-          </TabsContent>
-
-          {/* Pending Tab */}
-          <TabsContent value="pending" className="space-y-3">
-            {pendingCalls.length === 0 ? (
-              <Card className="p-8 text-center">
-                <Video className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">No pending call requests</p>
+                </div>
               </Card>
-            ) : (
-              pendingCalls.map((call) => {
-                const profile = profiles[call.student_id];
-                return (
-                  <Card key={call.id} className="p-4">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={profile?.avatar_url} />
-                        <AvatarFallback>
-                          {profile?.full_name?.charAt(0) || 'S'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-foreground truncate">
-                            {profile?.full_name || 'Student'}
-                          </h3>
-                          {getStatusBadge(call.status)}
-                        </div>
-                        <p className="text-sm text-muted-foreground">{formatDate(call.created_at)}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="default"
-                          onClick={() => handleAcceptCall(call)}
-                        >
-                          <Check className="h-4 w-4 mr-1" />
-                          Accept
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleRejectCall(call.id)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })
-            )}
+            ))}
           </TabsContent>
 
-          {/* Active Tab */}
+          {/* Active Call */}
           <TabsContent value="active" className="space-y-3">
-            {activeCalls.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground">No active calls</p>
-              </Card>
-            ) : (
-              activeCalls.map((call) => {
-                const profile = profiles[call.student_id];
-                return (
-                  <Card key={call.id} className="p-4 border-primary">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-12 w-12 ring-2 ring-primary">
-                        <AvatarImage src={profile?.avatar_url} />
-                        <AvatarFallback>
-                          {profile?.full_name?.charAt(0) || 'S'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{profile?.full_name || 'Student'}</h3>
-                        <p className="text-sm text-muted-foreground">{formatDate(call.created_at)}</p>
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={() => navigate(`/video-call/${call.stream_call_id}`)}
-                      >
-                        <Video className="h-4 w-4 mr-1" />
-                        Join
-                      </Button>
-                    </div>
-                  </Card>
-                );
-              })
-            )}
+            <Card className="p-4 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/30">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-14 w-14 ring-2 ring-green-500">
+                  <AvatarImage src={activeCall.studentAvatar} />
+                  <AvatarFallback className="bg-green-500 text-white text-lg">
+                    {activeCall.studentName.split(" ").map(n => n[0]).join("")}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-foreground">{activeCall.studentName}</h3>
+                    <Badge variant="outline" className="text-xs">{activeCall.studentId}</Badge>
+                    <Badge className="text-xs bg-green-500">Live</Badge>
+                  </div>
+                  <p className="text-sm text-foreground mb-1">{activeCall.topic}</p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Video className="h-3 w-3" />
+                    <span>Duration: {activeCall.duration}</span>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => navigate(`/video-call/${activeCall.id}`)}
+                  className="rounded-full bg-green-500 hover:bg-green-600"
+                >
+                  Join Call
+                </Button>
+              </div>
+            </Card>
           </TabsContent>
 
-          {/* Past Tab */}
+          {/* Past Calls */}
           <TabsContent value="past" className="space-y-3">
-            {pastCalls.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground">No call history</p>
-              </Card>
-            ) : (
-              pastCalls.map((call) => {
-                const profile = profiles[call.student_id];
-                return (
-                  <Card key={call.id} className="p-4">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={profile?.avatar_url} />
-                        <AvatarFallback>
-                          {profile?.full_name?.charAt(0) || 'S'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold">{profile?.full_name || 'Student'}</h3>
-                          {getStatusBadge(call.status)}
-                        </div>
-                        <p className="text-sm text-muted-foreground">{formatDate(call.created_at)}</p>
-                        {call.duration_seconds && (
-                          <p className="text-xs text-muted-foreground">
-                            Duration: {Math.floor(call.duration_seconds / 60)}m {call.duration_seconds % 60}s
-                          </p>
-                        )}
-                      </div>
+            {pastCalls.map((call) => (
+              <Card key={call.id} className="p-4 hover:bg-accent/50 transition-colors">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={call.studentAvatar} />
+                    <AvatarFallback className="bg-muted text-foreground">
+                      {call.studentName.split(" ").map(n => n[0]).join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-foreground">{call.studentName}</h3>
+                      <Badge variant="outline" className="text-xs">{call.studentId}</Badge>
                     </div>
-                  </Card>
-                );
-              })
-            )}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Video className="h-3 w-3" />
+                      <span>{call.date}</span>
+                      <span>•</span>
+                      <span>{call.duration}</span>
+                    </div>
+                  </div>
+
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setSelectedCall(call.id)}
+                  >
+                    View Details
+                  </Button>
+                </div>
+              </Card>
+            ))}
           </TabsContent>
         </Tabs>
+
+        {/* Call Details Sheet */}
+        <Sheet open={!!selectedCall} onOpenChange={(open) => !open && setSelectedCall(null)}>
+          <SheetContent className="w-full sm:max-w-lg">
+            {selectedCall && (() => {
+              const call = pastCalls.find(c => c.id === selectedCall);
+              if (!call) return null;
+              
+              return (
+                <>
+                  <SheetHeader>
+                    <SheetTitle>Call Details</SheetTitle>
+                    <SheetDescription>
+                      Complete information about this video call
+                    </SheetDescription>
+                  </SheetHeader>
+
+                  <div className="mt-6 space-y-6">
+                    {/* Student Info */}
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-16 w-16">
+                        <AvatarImage src={call.studentAvatar} />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                          {call.studentName.split(" ").map(n => n[0]).join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-semibold text-lg text-foreground">{call.studentName}</h3>
+                        <Badge variant="outline" className="mt-1">{call.studentId}</Badge>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Call Information */}
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Date & Time</p>
+                          <p className="text-sm text-muted-foreground">{call.date}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Duration</p>
+                          <p className="text-sm text-muted-foreground">{call.duration}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Check className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Status</p>
+                          <Badge className="mt-1 bg-green-500">Completed</Badge>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Video className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">Call Type</p>
+                          <p className="text-sm text-muted-foreground">Video Call</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Call Notes */}
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-3">
+                        <MessageSquare className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground mb-2">Call Notes</p>
+                          <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                            <p className="text-sm text-muted-foreground">
+                              Discussed complaint resolution and provided necessary guidance. 
+                              Student was satisfied with the explanation and no further action required.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Actions */}
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={() => navigate(`/video-call/${call.id}`)}
+                        className="flex-1"
+                      >
+                        <Video className="h-4 w-4 mr-2" />
+                        Call Again
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => setSelectedCall(null)}
+                        className="flex-1"
+                      >
+                        Close
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );
