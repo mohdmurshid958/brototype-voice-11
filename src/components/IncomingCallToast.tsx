@@ -97,39 +97,44 @@ export const IncomingCallToast = () => {
 
   if (!incomingCall) return null;
 
+  const callerRole = incomingCall.userRole === 'admin' ? 'Admin' : 'Student';
+
   return (
     <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-5">
-      <Card className="p-4 shadow-2xl border-2 border-primary bg-background min-w-[350px]">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-12 w-12 ring-2 ring-primary animate-pulse">
-            <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+      <Card className="p-6 shadow-2xl border-2 border-primary bg-background min-w-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <Avatar className="h-16 w-16 ring-4 ring-primary animate-pulse">
+            <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
               {incomingCall.userName.split(" ").map(n => n[0]).join("")}
             </AvatarFallback>
           </Avatar>
           
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-foreground truncate">
+          <div className="text-center">
+            <p className="text-xl font-bold text-foreground mb-1">
               {incomingCall.userName}
             </p>
-            <p className="text-sm text-muted-foreground">
-              Incoming video call...
+            <p className="text-sm text-muted-foreground mb-1">
+              {callerRole}
+            </p>
+            <p className="text-base text-foreground font-medium">
+              Incoming call...
             </p>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-4">
             <Button
-              size="icon"
-              className="rounded-full h-12 w-12 bg-red-500 hover:bg-red-600"
+              size="lg"
+              className="rounded-full h-14 w-14 bg-destructive hover:bg-destructive/90"
               onClick={handleReject}
             >
-              <PhoneOff className="h-5 w-5" />
+              <PhoneOff className="h-6 w-6" />
             </Button>
             <Button
-              size="icon"
-              className="rounded-full h-12 w-12 bg-green-500 hover:bg-green-600"
+              size="lg"
+              className="rounded-full h-14 w-14 bg-green-500 hover:bg-green-600"
               onClick={handleAccept}
             >
-              <Phone className="h-5 w-5" />
+              <Phone className="h-6 w-6" />
             </Button>
           </div>
         </div>

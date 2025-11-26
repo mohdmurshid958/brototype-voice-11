@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -109,7 +110,7 @@ const Chat = () => {
     },
   ];
 
-  // Fetch admin users
+  // Fetch admin users (excluding current user if they're the only admin)
   useEffect(() => {
     const fetchAdmins = async () => {
       // First get admin user_ids
@@ -120,11 +121,30 @@ const Chat = () => {
       
       if (roleError || !roleData || roleData.length === 0) {
         console.error('Error fetching admin roles:', roleError);
+        setAdminUsers([]);
         return;
       }
 
-      // Then get their profiles
-      const adminIds = roleData.map(r => r.user_id);
+      // Then get their profiles, excluding current user
+      const adminIds = roleData.map(r => r.user_id).filter(id => id !== user?.id);
+      
+      if (adminIds.length === 0) {
+        // If current user is the only admin, still show them (for testing purposes)
+        const allAdminIds = roleData.map(r => r.user_id);
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', allAdminIds);
+        
+        if (!profileError && profileData) {
+          setAdminUsers(profileData.map(profile => ({
+            id: profile.id,
+            name: profile.full_name || profile.email || 'Admin',
+          })));
+        }
+        return;
+      }
+
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('id, full_name, email')
@@ -133,13 +153,13 @@ const Chat = () => {
       if (!profileError && profileData) {
         setAdminUsers(profileData.map(profile => ({
           id: profile.id,
-          name: profile.full_name || profile.email || 'Unknown Admin',
+          name: profile.full_name || profile.email || 'Admin',
         })));
       }
     };
     
     fetchAdmins();
-  }, []);
+  }, [user]);
 
   const handleStartCall = async (adminId?: string) => {
     if (!adminId && adminUsers.length > 0) {
@@ -148,7 +168,11 @@ const Chat = () => {
     }
     
     if (!adminId || !user) {
-      alert('No admin users available');
+      toast({
+        title: "Cannot Start Call",
+        description: "No admin users are available at the moment.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -165,9 +189,18 @@ const Chat = () => {
 
     if (error) {
       console.error('Error creating call:', error);
-      alert('Failed to create call');
+      toast({
+        title: "Call Failed",
+        description: "Failed to initiate call. Please try again.",
+        variant: "destructive",
+      });
       return;
     }
+
+    toast({
+      title: "Calling Admin",
+      description: "Connecting to admin...",
+    });
 
     navigate(`/video-call/${callId}`, {
       state: {
