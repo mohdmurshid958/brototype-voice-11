@@ -156,15 +156,28 @@ const Chat = () => {
   // Fetch student users
   useEffect(() => {
     const fetchStudents = async () => {
-      const { data, error } = await supabase
+      // First get student user_ids
+      const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
-        .select('user_id, profiles(full_name, email)')
+        .select('user_id')
         .eq('role', 'student');
       
-      if (!error && data) {
-        setStudentUsers(data.map(item => ({
-          id: item.user_id,
-          name: item.profiles?.full_name || item.profiles?.email || 'Unknown Student',
+      if (roleError || !roleData || roleData.length === 0) {
+        console.error('Error fetching student roles:', roleError);
+        return;
+      }
+
+      // Then get their profiles
+      const studentIds = roleData.map(r => r.user_id);
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', studentIds);
+      
+      if (!profileError && profileData) {
+        setStudentUsers(profileData.map(profile => ({
+          id: profile.id,
+          name: profile.full_name || profile.email || 'Unknown Student',
         })));
       }
     };
