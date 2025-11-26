@@ -32,27 +32,73 @@ export const useVideoCall = (callId: string, remoteUserId?: string) => {
   const channelRef = useRef<any>(null);
   const pendingCandidatesRef = useRef<RTCIceCandidate[]>([]);
 
-  // Initialize local media stream
+  // Initialize local media stream with graceful fallback
   const initializeMedia = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 1280, height: 720 },
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-      });
-      setLocalStream(stream);
-      return stream;
+      // First try with both video and audio
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 1280, height: 720 },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+        setLocalStream(stream);
+        toast({
+          title: "Camera & Microphone Connected",
+          description: "Your video and audio are ready.",
+        });
+        return stream;
+      } catch (error) {
+        // Try video only
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 1280, height: 720 },
+            audio: false,
+          });
+          setLocalStream(stream);
+          toast({
+            title: "Camera Connected",
+            description: "Video only - microphone not available.",
+          });
+          return stream;
+        } catch (videoError) {
+          // Try audio only
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: false,
+              audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+              },
+            });
+            setLocalStream(stream);
+            toast({
+              title: "Microphone Connected",
+              description: "Audio only - camera not available.",
+            });
+            return stream;
+          } catch (audioError) {
+            // Create empty stream as fallback
+            const stream = new MediaStream();
+            setLocalStream(stream);
+            toast({
+              title: "No Media Devices",
+              description: "Continuing without camera or microphone.",
+            });
+            return stream;
+          }
+        }
+      }
     } catch (error) {
       console.error("Error accessing media devices:", error);
-      toast({
-        title: "Camera/Microphone Error",
-        description: "Unable to access camera or microphone. Please check permissions.",
-        variant: "destructive",
-      });
-      throw error;
+      // Return empty stream to allow connection without media
+      const stream = new MediaStream();
+      setLocalStream(stream);
+      return stream;
     }
   };
 

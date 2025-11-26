@@ -294,39 +294,6 @@ const Chat = () => {
           </Card>
         </div>
 
-        {/* Available Students */}
-        <Card className="mb-6 p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <h2 className="text-xl font-semibold text-foreground mb-4">Available Students</h2>
-          {studentUsers.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No student users available</p>
-          ) : (
-            <div className="space-y-3">
-              {studentUsers.map((student) => (
-                <div key={student.id} className="flex items-center justify-between p-3 rounded-lg bg-background/50 hover:bg-background transition-colors">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {student.name.split(" ").map(n => n[0]).join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium text-foreground">{student.name}</p>
-                      <p className="text-xs text-muted-foreground">Student</p>
-                    </div>
-                  </div>
-                  <Button
-                    onClick={() => handleCallStudent(student.id)}
-                    size="sm"
-                    className="rounded-full"
-                  >
-                    <Video className="h-4 w-4 mr-2" />
-                    Call
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
 
         {/* Search */}
         <div className="mb-6">
@@ -342,8 +309,11 @@ const Chat = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="pending" className="w-full">
+        <Tabs defaultValue="students" className="w-full">
           <TabsList className="w-full justify-start mb-6">
+            <TabsTrigger value="students">
+              Available Students
+            </TabsTrigger>
             <TabsTrigger value="pending">
               Pending ({pendingCalls.length})
             </TabsTrigger>
@@ -354,6 +324,42 @@ const Chat = () => {
               Past Calls
             </TabsTrigger>
           </TabsList>
+
+          {/* Available Students Tab */}
+          <TabsContent value="students" className="space-y-3">
+            {studentUsers.length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">No student users available</p>
+              </Card>
+            ) : (
+              <div className="grid gap-3">
+                {studentUsers.map((student) => (
+                  <Card key={student.id} className="p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-12 w-12">
+                          <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                            {student.name.split(" ").map(n => n[0]).join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold text-foreground">{student.name}</p>
+                          <p className="text-sm text-muted-foreground">Student</p>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => handleCallStudent(student.id)}
+                        className="rounded-full"
+                      >
+                        <Video className="h-4 w-4 mr-2" />
+                        Call Student
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
           {/* Pending Requests */}
           <TabsContent value="pending" className="space-y-3">
