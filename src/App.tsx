@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { IncomingCallToast } from "./components/IncomingCallToast";
 import { AdminNavigationProvider, useAdminNavigation } from "./contexts/AdminNavigationContext";
 import { StudentNavigationProvider, useStudentNavigation } from "./contexts/StudentNavigationContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -73,6 +74,7 @@ function AppContent() {
 
   return (
     <>
+      <IncomingCallToast />
       {showNavbar && <Navbar />}
       <div className={showAdminSidebar || showStudentSidebar ? "flex min-h-screen w-full" : ""}>
         {showAdminSidebar && <AdminSidebar />}

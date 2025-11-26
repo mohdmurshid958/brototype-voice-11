@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Video, Phone, Search, Plus } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -10,7 +12,9 @@ import { useNavigate } from "react-router-dom";
 
 const Chat = () => {
   const navigate = useNavigate();
+  const { user, userRole } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [adminUsers, setAdminUsers] = useState<any[]>([]);
 
   // Mock data for past calls
   const pastCalls = [
@@ -43,8 +47,43 @@ const Chat = () => {
     },
   ];
 
-  const handleStartCall = () => {
-    navigate("/video-call");
+  // Fetch admin users
+  useEffect(() => {
+    const fetchAdmins = async () => {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('user_id, profiles(full_name, email)')
+        .eq('role', 'admin');
+      
+      if (!error && data) {
+        setAdminUsers(data.map(item => ({
+          id: item.user_id,
+          name: item.profiles?.full_name || item.profiles?.email || 'Unknown Admin',
+        })));
+      }
+    };
+    
+    fetchAdmins();
+  }, []);
+
+  const handleStartCall = (adminId?: string) => {
+    if (!adminId && adminUsers.length > 0) {
+      // Default to first admin if none specified
+      adminId = adminUsers[0].id;
+    }
+    
+    if (!adminId) {
+      alert('No admin users available');
+      return;
+    }
+
+    const callId = `call-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    navigate(`/video-call/${callId}`, {
+      state: {
+        remoteUserId: adminId,
+        isIncoming: false,
+      },
+    });
   };
 
   return (
@@ -64,7 +103,7 @@ const Chat = () => {
               <p className="text-sm text-muted-foreground">Request a video consultation with an admin</p>
             </div>
             <Button
-              onClick={handleStartCall}
+              onClick={() => handleStartCall()}
               size="lg"
               className="rounded-full h-14 w-14 p-0"
             >
