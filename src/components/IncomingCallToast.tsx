@@ -23,16 +23,17 @@ export const IncomingCallToast = () => {
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase.channel('incoming-calls');
+    // Listen on a broadcast channel for all incoming calls
+    const channel = supabase.channel('call-signals');
 
     channel
       .on('broadcast', { event: 'signal' }, ({ payload }: any) => {
+        // Only process offer signals meant for this user
         if (payload.to === user.id && payload.type === 'offer') {
-          // Generate a unique call ID
-          const callId = `call-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          console.log('📞 Incoming call from:', payload.userName);
           
           setIncomingCall({
-            callId,
+            callId: payload.callId || `call-${Date.now()}`,
             from: payload.from,
             userName: payload.userName || 'Unknown User',
             userRole: payload.userRole || 'user',
@@ -43,7 +44,7 @@ export const IncomingCallToast = () => {
           const audio = new Audio('/ringtone.mp3');
           audio.loop = true;
           audio.play().catch(() => {
-            // Handle autoplay policy
+            console.log('Could not play ringtone');
           });
 
           // Auto-dismiss after 30 seconds
@@ -81,8 +82,8 @@ export const IncomingCallToast = () => {
 
   const handleReject = () => {
     if (incomingCall && user) {
-      // Send rejection signal
-      supabase.channel(`call:${incomingCall.callId}`).send({
+      // Send rejection signal on the shared broadcast channel
+      supabase.channel('call-signals').send({
         type: 'broadcast',
         event: 'signal',
         payload: {
@@ -97,44 +98,43 @@ export const IncomingCallToast = () => {
 
   if (!incomingCall) return null;
 
-  const callerRole = incomingCall.userRole === 'admin' ? 'Admin' : 'Student';
+  const callerRole = incomingCall.userRole === 'admin' ? 'Admin' : 
+    incomingCall.userRole === 'student' ? 'Student' : 'User';
+  const callerDisplay = incomingCall.userRole === 'admin' ? 'Admin' : incomingCall.userName;
 
   return (
     <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-5">
-      <Card className="p-6 shadow-2xl border-2 border-primary bg-background min-w-[400px]">
+      <Card className="p-6 shadow-2xl border-2 border-primary bg-background min-w-[380px]">
         <div className="flex flex-col items-center gap-4">
-          <Avatar className="h-16 w-16 ring-4 ring-primary animate-pulse">
-            <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-              {incomingCall.userName.split(" ").map(n => n[0]).join("")}
+          <Avatar className="h-20 w-20 ring-4 ring-primary animate-pulse">
+            <AvatarFallback className="bg-primary text-primary-foreground text-3xl font-bold">
+              {callerRole === 'Admin' ? 'A' : incomingCall.userName.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           
           <div className="text-center">
-            <p className="text-xl font-bold text-foreground mb-1">
-              {incomingCall.userName}
+            <p className="text-2xl font-bold text-foreground mb-1">
+              {callerDisplay}
             </p>
-            <p className="text-sm text-muted-foreground mb-1">
-              {callerRole}
-            </p>
-            <p className="text-base text-foreground font-medium">
-              Incoming call...
+            <p className="text-base text-muted-foreground mb-2">
+              {callerRole} calling...
             </p>
           </div>
 
-          <div className="flex gap-4">
+          <div className="flex gap-6">
             <Button
               size="lg"
-              className="rounded-full h-14 w-14 bg-destructive hover:bg-destructive/90"
+              className="rounded-full h-16 w-16 bg-red-500 hover:bg-red-600 shadow-lg"
               onClick={handleReject}
             >
-              <PhoneOff className="h-6 w-6" />
+              <PhoneOff className="h-7 w-7" />
             </Button>
             <Button
               size="lg"
-              className="rounded-full h-14 w-14 bg-green-500 hover:bg-green-600"
+              className="rounded-full h-16 w-16 bg-green-500 hover:bg-green-600 shadow-lg"
               onClick={handleAccept}
             >
-              <Phone className="h-6 w-6" />
+              <Phone className="h-7 w-7" />
             </Button>
           </div>
         </div>

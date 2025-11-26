@@ -113,8 +113,12 @@ const VideoCall = () => {
     setIsAudioOn(enabled);
   };
 
-  const participantName = remoteParticipant?.userName || "Connecting...";
-  const participantRole = remoteParticipant?.userRole || "User";
+  // Determine participant info based on role
+  const participantName = remoteParticipant?.userName || (
+    remoteUserId ? "Admin" : "Connecting..."
+  );
+  const participantRole = remoteParticipant?.userRole === 'admin' ? 'Admin' : 
+    remoteParticipant?.userRole === 'student' ? 'Student' : 'User';
 
   return (
     <div className="fixed inset-0 bg-black flex flex-col">
