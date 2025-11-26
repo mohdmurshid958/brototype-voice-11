@@ -135,34 +135,30 @@ const Chat = () => {
         return;
       }
 
-      // Get all admin IDs
-      const adminIds = roleData.map(r => r.user_id);
-      console.log('Admin IDs:', adminIds);
+      // Get admin ID (there's only one admin)
+      const adminId = roleData[0].user_id;
+      console.log('Admin ID:', adminId);
       
-      // Fetch their profiles
+      // Fetch admin profile directly by ID
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('id, full_name, email')
-        .in('id', adminIds);
+        .eq('id', adminId)
+        .single();
       
-      console.log('Admin profiles:', profileData, 'Error:', profileError);
+      console.log('Admin profile:', profileData, 'Error:', profileError);
       
-      if (profileError) {
-        console.error('Error fetching admin profiles:', profileError);
+      if (profileError || !profileData) {
+        console.error('Error fetching admin profile:', profileError);
         setAdminUsers([]);
         return;
       }
 
-      if (profileData && profileData.length > 0) {
-        setAdminUsers(profileData.map(profile => ({
-          id: profile.id,
-          name: profile.full_name || profile.email?.split('@')[0] || 'Admin',
-          email: profile.email,
-        })));
-      } else {
-        console.log('No admin profiles found');
-        setAdminUsers([]);
-      }
+      setAdminUsers([{
+        id: profileData.id,
+        name: 'Admin',
+        email: profileData.email,
+      }]);
     };
     
     if (user) {
