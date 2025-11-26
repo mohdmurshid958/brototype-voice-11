@@ -15,9 +15,71 @@ const Chat = () => {
   const { user, userRole } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [adminUsers, setAdminUsers] = useState<any[]>([]);
+  const [pastCalls, setPastCalls] = useState<any[]>([]);
 
-  // Mock data for past calls
-  const pastCalls = [
+  // Fetch past calls
+  useEffect(() => {
+    const fetchCalls = async () => {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('video_calls')
+        .select('*')
+        .eq('student_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (!error && data) {
+        // Fetch admin profiles
+        const adminIds = data.filter(call => call.admin_id).map(call => call.admin_id!);
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', adminIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+        setPastCalls(data.map(call => {
+          const profile = call.admin_id ? profileMap.get(call.admin_id) : null;
+          return {
+            id: call.id,
+            adminName: profile?.full_name || profile?.email || 'Unknown Admin',
+            adminAvatar: "",
+            date: new Date(call.created_at).toLocaleString(),
+            duration: call.duration_seconds ? `${Math.floor(call.duration_seconds / 60)} min` : 'N/A',
+            status: call.status === 'ended' ? 'completed' : call.status,
+            type: "video",
+          };
+        }));
+      }
+    };
+
+    fetchCalls();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('student_calls')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'video_calls',
+          filter: `student_id=eq.${user?.id}`,
+        },
+        () => {
+          fetchCalls();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  // Mock data for past calls (keeping as fallback)
+  const mockPastCalls = [
     {
       id: "1",
       adminName: "Dr. Sarah Johnson",
@@ -134,7 +196,11 @@ const Chat = () => {
           </TabsList>
 
           <TabsContent value="all" className="space-y-3">
-            {pastCalls.map((call) => (
+            {pastCalls.length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">No call history yet</p>
+              </Card>
+            ) : pastCalls.map((call) => (
               <Card
                 key={call.id}
                 className="p-4 hover:bg-accent/50 transition-colors cursor-pointer"
@@ -180,7 +246,11 @@ const Chat = () => {
           </TabsContent>
 
           <TabsContent value="completed" className="space-y-3">
-            {pastCalls.filter(call => call.status === "completed").map((call) => (
+            {pastCalls.filter(call => call.status === "completed").length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">No completed calls yet</p>
+              </Card>
+            ) : pastCalls.filter(call => call.status === "completed").map((call) => (
               <Card
                 key={call.id}
                 className="p-4 hover:bg-accent/50 transition-colors cursor-pointer"
@@ -212,7 +282,11 @@ const Chat = () => {
           </TabsContent>
 
           <TabsContent value="missed" className="space-y-3">
-            {pastCalls.filter(call => call.status === "missed").map((call) => (
+            {pastCalls.filter(call => call.status === "missed" || call.status === "failed").length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">No missed calls</p>
+              </Card>
+            ) : pastCalls.filter(call => call.status === "missed" || call.status === "failed").map((call) => (
               <Card
                 key={call.id}
                 className="p-4 hover:bg-accent/50 transition-colors cursor-pointer"
