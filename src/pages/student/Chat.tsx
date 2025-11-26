@@ -112,15 +112,28 @@ const Chat = () => {
   // Fetch admin users
   useEffect(() => {
     const fetchAdmins = async () => {
-      const { data, error } = await supabase
+      // First get admin user_ids
+      const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
-        .select('user_id, profiles(full_name, email)')
+        .select('user_id')
         .eq('role', 'admin');
       
-      if (!error && data) {
-        setAdminUsers(data.map(item => ({
-          id: item.user_id,
-          name: item.profiles?.full_name || item.profiles?.email || 'Unknown Admin',
+      if (roleError || !roleData || roleData.length === 0) {
+        console.error('Error fetching admin roles:', roleError);
+        return;
+      }
+
+      // Then get their profiles
+      const adminIds = roleData.map(r => r.user_id);
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', adminIds);
+      
+      if (!profileError && profileData) {
+        setAdminUsers(profileData.map(profile => ({
+          id: profile.id,
+          name: profile.full_name || profile.email || 'Unknown Admin',
         })));
       }
     };
