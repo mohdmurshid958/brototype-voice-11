@@ -25,6 +25,8 @@ export const useVideoCall = (callId: string, remoteUserId?: string) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [remoteParticipant, setRemoteParticipant] = useState<CallParticipant | null>(null);
+  const [dbCallId, setDbCallId] = useState<string | null>(null);
+  const callStartTimeRef = useRef<Date | null>(null);
   
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const channelRef = useRef<any>(null);
@@ -100,12 +102,76 @@ export const useVideoCall = (callId: string, remoteUserId?: string) => {
       if (pc.connectionState === 'connected') {
         setIsConnected(true);
         setIsConnecting(false);
+        updateCallStatus('active');
       } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
         setIsConnected(false);
+        if (pc.connectionState === 'failed') {
+          updateCallStatus('failed');
+        }
       }
     };
 
     return pc;
+  };
+
+  // Create call record in database
+  const createCallRecord = async () => {
+    if (!user || !remoteUserId) return;
+
+    try {
+      const isStudent = userRole === 'student';
+      const { data, error } = await supabase
+        .from('video_calls')
+        .insert({
+          stream_call_id: callId,
+          student_id: isStudent ? user.id : remoteUserId,
+          admin_id: isStudent ? remoteUserId : user.id,
+          status: 'pending',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setDbCallId(data.id);
+      console.log("Call record created:", data.id);
+    } catch (error) {
+      console.error("Error creating call record:", error);
+    }
+  };
+
+  // Update call status
+  const updateCallStatus = async (status: string, additionalData?: any) => {
+    if (!dbCallId) return;
+
+    try {
+      const updateData: any = { status, updated_at: new Date().toISOString() };
+      
+      if (status === 'active' && !callStartTimeRef.current) {
+        callStartTimeRef.current = new Date();
+        updateData.started_at = callStartTimeRef.current.toISOString();
+      }
+      
+      if (status === 'ended' && callStartTimeRef.current) {
+        const endTime = new Date();
+        const durationSeconds = Math.floor((endTime.getTime() - callStartTimeRef.current.getTime()) / 1000);
+        updateData.ended_at = endTime.toISOString();
+        updateData.duration_seconds = durationSeconds;
+      }
+
+      if (additionalData) {
+        Object.assign(updateData, additionalData);
+      }
+
+      const { error } = await supabase
+        .from('video_calls')
+        .update(updateData)
+        .eq('id', dbCallId);
+
+      if (error) throw error;
+      console.log("Call status updated:", status);
+    } catch (error) {
+      console.error("Error updating call status:", error);
+    }
   };
 
   // Start call (caller initiates)
@@ -115,6 +181,9 @@ export const useVideoCall = (callId: string, remoteUserId?: string) => {
     setIsConnecting(true);
     
     try {
+      // Create call record
+      await createCallRecord();
+
       const stream = await initializeMedia();
       const pc = createPeerConnection(stream);
       peerConnectionRef.current = pc;
@@ -135,11 +204,13 @@ export const useVideoCall = (callId: string, remoteUserId?: string) => {
           data: offer,
           userName: user.user_metadata?.full_name || user.email,
           userRole: userRole,
+          callId: callId,
         },
       });
     } catch (error) {
       console.error("Error starting call:", error);
       setIsConnecting(false);
+      await updateCallStatus('failed');
     }
   };
 
@@ -217,7 +288,10 @@ export const useVideoCall = (callId: string, remoteUserId?: string) => {
   };
 
   // End call
-  const endCall = () => {
+  const endCall = async () => {
+    // Update call status to ended
+    await updateCallStatus('ended');
+
     if (remoteUserId && user) {
       channelRef.current?.send({
         type: 'broadcast',
@@ -244,6 +318,7 @@ export const useVideoCall = (callId: string, remoteUserId?: string) => {
     setRemoteStream(null);
     setIsConnected(false);
     setIsConnecting(false);
+    callStartTimeRef.current = null;
   };
 
   // Toggle video
