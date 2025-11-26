@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Video, Phone, Search, Check, X, Clock, MessageSquare, Calendar } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -14,107 +12,11 @@ import { useNavigate } from "react-router-dom";
 
 const Chat = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCall, setSelectedCall] = useState<string | null>(null);
-  const [studentUsers, setStudentUsers] = useState<any[]>([]);
-  const [pastCalls, setPastCalls] = useState<any[]>([]);
-  const [pendingCalls, setPendingCalls] = useState<any[]>([]);
 
-  // Fetch past calls
-  useEffect(() => {
-    const fetchCalls = async () => {
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('video_calls')
-        .select('*')
-        .eq('admin_id', user.id)
-        .in('status', ['ended', 'failed'])
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (!error && data) {
-        // Fetch student profiles
-        const studentIds = data.map(call => call.student_id);
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, full_name, email')
-          .in('id', studentIds);
-
-        const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
-
-        setPastCalls(data.map(call => {
-          const profile = profileMap.get(call.student_id);
-          return {
-            id: call.id,
-            studentName: profile?.full_name || profile?.email || 'Unknown Student',
-            studentAvatar: "",
-            studentId: call.student_id,
-            date: new Date(call.created_at).toLocaleString(),
-            duration: call.duration_seconds ? `${Math.floor(call.duration_seconds / 60)} min` : 'N/A',
-            status: call.status === 'ended' ? 'completed' : call.status,
-          };
-        }));
-      }
-
-      // Fetch pending calls
-      const { data: pendingData, error: pendingError } = await supabase
-        .from('video_calls')
-        .select('*')
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
-
-      if (!pendingError && pendingData) {
-        // Fetch student profiles
-        const studentIds = pendingData.map(call => call.student_id);
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, full_name, email')
-          .in('id', studentIds);
-
-        const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
-
-        setPendingCalls(pendingData.map(call => {
-          const profile = profileMap.get(call.student_id);
-          return {
-            id: call.id,
-            studentName: profile?.full_name || profile?.email || 'Unknown Student',
-            studentAvatar: "",
-            studentId: call.student_id,
-            requestTime: new Date(call.created_at).toLocaleTimeString(),
-            status: 'pending',
-            topic: 'Video Call Request',
-          };
-        }));
-      }
-    };
-
-    fetchCalls();
-
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel('admin_calls')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'video_calls',
-        },
-        () => {
-          fetchCalls();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-
-  // Mock data for call requests (keeping as fallback)
-  const mockCallRequests = [
+  // Mock data for call requests
+  const callRequests = [
     {
       id: "1",
       studentName: "John Smith",
@@ -153,97 +55,38 @@ const Chat = () => {
     topic: "Complaint Follow-up",
   };
 
-  // Fetch student users
-  useEffect(() => {
-    const fetchStudents = async () => {
-      // First get student user_ids
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .eq('role', 'student');
-      
-      if (roleError || !roleData || roleData.length === 0) {
-        console.error('Error fetching student roles:', roleError);
-        return;
-      }
+  const pastCalls = [
+    {
+      id: "5",
+      studentName: "James Taylor",
+      studentAvatar: "",
+      studentId: "STU2024005",
+      date: "Today, 1:15 PM",
+      duration: "12 min",
+      status: "completed",
+    },
+    {
+      id: "6",
+      studentName: "Lisa Anderson",
+      studentAvatar: "",
+      studentId: "STU2024006",
+      date: "Today, 11:30 AM",
+      duration: "8 min",
+      status: "completed",
+    },
+    {
+      id: "7",
+      studentName: "David Martinez",
+      studentAvatar: "",
+      studentId: "STU2024007",
+      date: "Yesterday, 3:45 PM",
+      duration: "20 min",
+      status: "completed",
+    },
+  ];
 
-      // Then get their profiles
-      const studentIds = roleData.map(r => r.user_id);
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, full_name, email')
-        .in('id', studentIds);
-      
-      if (!profileError && profileData) {
-        setStudentUsers(profileData.map(profile => ({
-          id: profile.id,
-          name: profile.full_name || profile.email || 'Unknown Student',
-        })));
-      }
-    };
-    
-    fetchStudents();
-  }, []);
-
-  const handleAcceptCall = async (callRecordId: string, studentId?: string) => {
-    if (!studentId) return;
-
-    // Find the call record to get the stream_call_id
-    const call = pendingCalls.find(c => c.id === callRecordId);
-    if (!call) return;
-
-    // Get the actual video_calls record to find stream_call_id
-    const { data: callData, error: callError } = await supabase
-      .from('video_calls')
-      .select('stream_call_id, id')
-      .eq('id', callRecordId)
-      .single();
-
-    if (callError || !callData) {
-      console.error('Error fetching call:', callError);
-      return;
-    }
-
-    // Update call status to active
-    await supabase
-      .from('video_calls')
-      .update({ status: 'active', started_at: new Date().toISOString() })
-      .eq('id', callRecordId);
-
-    navigate(`/video-call/${callData.stream_call_id}`, {
-      state: {
-        remoteUserId: studentId,
-        isIncoming: true,
-      },
-    });
-  };
-
-  const handleCallStudent = async (studentId: string) => {
-    if (!user) return;
-
-    // Create a call record
-    const callId = `call-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const { error } = await supabase
-      .from('video_calls')
-      .insert({
-        stream_call_id: callId,
-        student_id: studentId,
-        admin_id: user.id,
-        status: 'pending',
-      });
-
-    if (error) {
-      console.error('Error creating call:', error);
-      alert('Failed to create call');
-      return;
-    }
-
-    navigate(`/video-call/${callId}`, {
-      state: {
-        remoteUserId: studentId,
-        isIncoming: false,
-      },
-    });
+  const handleAcceptCall = (callId: string) => {
+    navigate(`/video-call/${callId}`);
   };
 
   return (
@@ -261,7 +104,7 @@ const Chat = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Pending Requests</p>
-                <p className="text-2xl font-bold text-foreground">{pendingCalls.length}</p>
+                <p className="text-2xl font-bold text-foreground">{callRequests.length}</p>
               </div>
               <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
                 <Clock className="h-6 w-6 text-primary" />
@@ -294,7 +137,6 @@ const Chat = () => {
           </Card>
         </div>
 
-
         {/* Search */}
         <div className="mb-6">
           <div className="relative">
@@ -309,13 +151,10 @@ const Chat = () => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="students" className="w-full">
+        <Tabs defaultValue="pending" className="w-full">
           <TabsList className="w-full justify-start mb-6">
-            <TabsTrigger value="students">
-              Available Students
-            </TabsTrigger>
             <TabsTrigger value="pending">
-              Pending ({pendingCalls.length})
+              Pending ({callRequests.length})
             </TabsTrigger>
             <TabsTrigger value="active">
               Active (1)
@@ -325,49 +164,9 @@ const Chat = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Available Students Tab */}
-          <TabsContent value="students" className="space-y-3">
-            {studentUsers.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground">No student users available</p>
-              </Card>
-            ) : (
-              <div className="grid gap-3">
-                {studentUsers.map((student) => (
-                  <Card key={student.id} className="p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-12 w-12">
-                          <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-                            {student.name.split(" ").map(n => n[0]).join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-semibold text-foreground">{student.name}</p>
-                          <p className="text-sm text-muted-foreground">Student</p>
-                        </div>
-                      </div>
-                      <Button
-                        onClick={() => handleCallStudent(student.id)}
-                        className="rounded-full"
-                      >
-                        <Video className="h-4 w-4 mr-2" />
-                        Call Student
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
           {/* Pending Requests */}
           <TabsContent value="pending" className="space-y-3">
-            {pendingCalls.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground">No pending call requests</p>
-              </Card>
-            ) : pendingCalls.map((request) => (
+            {callRequests.map((request) => (
               <Card key={request.id} className="p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-14 w-14">
@@ -391,7 +190,7 @@ const Chat = () => {
 
                   <div className="flex gap-2">
                     <Button
-                      onClick={() => handleAcceptCall(request.id, request.studentId)}
+                      onClick={() => handleAcceptCall(request.id)}
                       className="rounded-full"
                       size="default"
                     >
@@ -447,11 +246,7 @@ const Chat = () => {
 
           {/* Past Calls */}
           <TabsContent value="past" className="space-y-3">
-            {pastCalls.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground">No past calls yet</p>
-              </Card>
-            ) : pastCalls.map((call) => (
+            {pastCalls.map((call) => (
               <Card key={call.id} className="p-4 hover:bg-accent/50 transition-colors">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12">

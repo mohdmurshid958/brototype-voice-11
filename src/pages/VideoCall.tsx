@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Video,
   VideoOff,
@@ -20,77 +20,29 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useVideoCall } from "@/hooks/useVideoCall";
-import { useAuth } from "@/contexts/AuthContext";
 
 const VideoCall = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { callId } = useParams();
-  const { user } = useAuth();
-  
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isAudioOn, setIsAudioOn] = useState(true);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [duration, setDuration] = useState(0);
-  
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
-  // Get state from navigation (for incoming calls)
-  const { remoteUserId, offer, isIncoming } = location.state || {};
+  // Mock participant data
+  const participant = {
+    name: "Dr. Sarah Johnson",
+    avatar: "",
+    role: "Admin",
+  };
 
-  const {
-    localStream,
-    remoteStream,
-    isConnected,
-    isConnecting,
-    remoteParticipant,
-    startCall,
-    answerCall,
-    endCall,
-    toggleVideo,
-    toggleAudio,
-  } = useVideoCall(callId || 'default', remoteUserId);
-
-  // Set up local video
   useEffect(() => {
-    if (localStream && localVideoRef.current) {
-      localVideoRef.current.srcObject = localStream;
-    }
-  }, [localStream]);
-
-  // Set up remote video
-  useEffect(() => {
-    if (remoteStream && remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = remoteStream;
-    }
-  }, [remoteStream]);
-
-  // Start or answer call
-  useEffect(() => {
-    const initCall = async () => {
-      if (isIncoming && offer) {
-        // Answer incoming call
-        answerCall(offer, remoteUserId);
-      } else if (remoteUserId && !isIncoming) {
-        // Start outgoing call
-        startCall();
-      }
-    };
-    
-    initCall();
-  }, []);
-
-  // Call duration timer
-  useEffect(() => {
-    if (!isConnected) return;
-    
     const timer = setInterval(() => {
       setDuration((prev) => prev + 1);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isConnected]);
+  }, []);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -99,26 +51,8 @@ const VideoCall = () => {
   };
 
   const handleEndCall = () => {
-    endCall();
     navigate(-1);
   };
-
-  const handleToggleVideo = () => {
-    const enabled = toggleVideo();
-    setIsVideoOn(enabled);
-  };
-
-  const handleToggleAudio = () => {
-    const enabled = toggleAudio();
-    setIsAudioOn(enabled);
-  };
-
-  // Determine participant info based on role
-  const participantName = remoteParticipant?.userName || (
-    remoteUserId ? "Admin" : "Connecting..."
-  );
-  const participantRole = remoteParticipant?.userRole === 'admin' ? 'Admin' : 
-    remoteParticipant?.userRole === 'student' ? 'Student' : 'User';
 
   return (
     <div className="fixed inset-0 bg-black flex flex-col">
@@ -153,46 +87,44 @@ const VideoCall = () => {
       {/* Main Video Area */}
       <div className="flex-1 relative">
         {/* Remote Video (Main) */}
-        <div className="absolute inset-0 bg-black">
-          {remoteStream ? (
-            <video
-              ref={remoteVideoRef}
-              autoPlay
-              playsInline
-              className="w-full h-full object-cover"
-            />
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
+          {isVideoOn ? (
+            <div className="text-center">
+              <Avatar className="h-32 w-32 mx-auto mb-4 ring-4 ring-primary/50">
+                <AvatarImage src={participant.avatar} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-4xl">
+                  {participant.name.split(" ").map(n => n[0]).join("")}
+                </AvatarFallback>
+              </Avatar>
+              <h2 className="text-2xl font-semibold text-white mb-1">{participant.name}</h2>
+              <p className="text-gray-400">{participant.role}</p>
+            </div>
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
-              <div className="text-center">
-                <Avatar className="h-32 w-32 mx-auto mb-4 ring-4 ring-primary/50">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-4xl">
-                    {participantName.split(" ").map(n => n[0]).join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <h2 className="text-2xl font-semibold text-white mb-1">{participantName}</h2>
-                <p className="text-gray-400">{isConnecting ? "Connecting..." : participantRole}</p>
+            <div className="text-center">
+              <div className="h-32 w-32 mx-auto mb-4 rounded-full bg-gray-700 flex items-center justify-center">
+                <VideoOff className="h-16 w-16 text-gray-500" />
               </div>
+              <h2 className="text-2xl font-semibold text-white mb-1">{participant.name}</h2>
+              <p className="text-gray-400">Video is off</p>
             </div>
           )}
         </div>
 
         {/* Local Video (Picture-in-Picture) */}
         <Card className="absolute top-20 right-4 w-48 h-36 overflow-hidden border-2 border-primary/50 shadow-2xl">
-          <div className="relative w-full h-full bg-black">
-            {localStream && isVideoOn ? (
-              <video
-                ref={localVideoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full object-cover mirror"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
-                <VideoOff className="h-8 w-8 text-gray-400" />
+          <div className="relative w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+            {isVideoOn ? (
+              <div className="text-center">
+                <Avatar className="h-16 w-16 mx-auto">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                    You
+                  </AvatarFallback>
+                </Avatar>
               </div>
+            ) : (
+              <VideoOff className="h-8 w-8 text-muted-foreground" />
             )}
-            <div className="absolute bottom-2 left-2 text-xs text-white font-medium bg-black/50 px-2 py-1 rounded">
+            <div className="absolute bottom-2 left-2 text-xs text-white font-medium">
               You
             </div>
           </div>
@@ -207,7 +139,7 @@ const VideoCall = () => {
             variant={isAudioOn ? "secondary" : "destructive"}
             size="lg"
             className="rounded-full h-14 w-14 p-0"
-            onClick={handleToggleAudio}
+            onClick={() => setIsAudioOn(!isAudioOn)}
           >
             {isAudioOn ? (
               <Mic className="h-6 w-6" />
@@ -221,13 +153,23 @@ const VideoCall = () => {
             variant={isVideoOn ? "secondary" : "destructive"}
             size="lg"
             className="rounded-full h-14 w-14 p-0"
-            onClick={handleToggleVideo}
+            onClick={() => setIsVideoOn(!isVideoOn)}
           >
             {isVideoOn ? (
               <Video className="h-6 w-6" />
             ) : (
               <VideoOff className="h-6 w-6" />
             )}
+          </Button>
+
+          {/* Screen Share */}
+          <Button
+            variant={isScreenSharing ? "default" : "secondary"}
+            size="lg"
+            className="rounded-full h-14 w-14 p-0"
+            onClick={() => setIsScreenSharing(!isScreenSharing)}
+          >
+            <Monitor className="h-6 w-6" />
           </Button>
 
           {/* End Call */}
@@ -244,10 +186,9 @@ const VideoCall = () => {
         {/* Call Info */}
         <div className="text-center mt-4">
           <p className="text-white/60 text-sm">
-            {!isConnected && isConnecting && "Connecting..."}
-            {isConnected && "Connected"}
-            {!isAudioOn && " • Microphone off"}
-            {!isVideoOn && " • Camera off"}
+            {isScreenSharing && "Screen sharing active • "}
+            {!isAudioOn && "Microphone off • "}
+            {!isVideoOn && "Camera off"}
           </p>
         </div>
       </div>

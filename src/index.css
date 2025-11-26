@@ -208,9 +208,4 @@ All colors MUST be HSL.
       rgba(0, 0, 0, 1) 8rem
     );
   }
-  
-  /* Mirror effect for local video */
-  .mirror {
-    transform: scaleX(-1);
-  }
 }
