@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Video, Phone, Search, Check, X, Clock, MessageSquare, Calendar } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -12,8 +14,10 @@ import { useNavigate } from "react-router-dom";
 
 const Chat = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCall, setSelectedCall] = useState<string | null>(null);
+  const [studentUsers, setStudentUsers] = useState<any[]>([]);
 
   // Mock data for call requests
   const callRequests = [
@@ -85,8 +89,49 @@ const Chat = () => {
     },
   ];
 
-  const handleAcceptCall = (callId: string) => {
-    navigate(`/video-call/${callId}`);
+  // Fetch student users
+  useEffect(() => {
+    const fetchStudents = async () => {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('user_id, profiles(full_name, email)')
+        .eq('role', 'student');
+      
+      if (!error && data) {
+        setStudentUsers(data.map(item => ({
+          id: item.user_id,
+          name: item.profiles?.full_name || item.profiles?.email || 'Unknown Student',
+        })));
+      }
+    };
+    
+    fetchStudents();
+  }, []);
+
+  const handleAcceptCall = (requestId: string, studentId?: string) => {
+    if (!studentId && studentUsers.length > 0) {
+      studentId = studentUsers[0].id;
+    }
+    
+    if (!studentId) return;
+
+    const callId = `call-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    navigate(`/video-call/${callId}`, {
+      state: {
+        remoteUserId: studentId,
+        isIncoming: false,
+      },
+    });
+  };
+
+  const handleCallStudent = (studentId: string) => {
+    const callId = `call-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    navigate(`/video-call/${callId}`, {
+      state: {
+        remoteUserId: studentId,
+        isIncoming: false,
+      },
+    });
   };
 
   return (
@@ -190,7 +235,7 @@ const Chat = () => {
 
                   <div className="flex gap-2">
                     <Button
-                      onClick={() => handleAcceptCall(request.id)}
+                      onClick={() => handleAcceptCall(request.id, request.studentId)}
                       className="rounded-full"
                       size="default"
                     >
