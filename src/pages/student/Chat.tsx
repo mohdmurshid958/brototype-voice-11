@@ -44,7 +44,7 @@ const Chat = () => {
           const profile = call.admin_id ? profileMap.get(call.admin_id) : null;
           return {
             id: call.id,
-            adminName: profile?.full_name || profile?.email || 'Unknown Admin',
+            adminName: profile?.full_name || profile?.email?.split('@')[0] || 'Admin',
             adminAvatar: "",
             date: new Date(call.created_at).toLocaleString(),
             duration: call.duration_seconds ? `${Math.floor(call.duration_seconds / 60)} min` : 'N/A',
@@ -110,55 +110,64 @@ const Chat = () => {
     },
   ];
 
-  // Fetch admin users (excluding current user if they're the only admin)
+  // Fetch admin users
   useEffect(() => {
     const fetchAdmins = async () => {
+      console.log('Fetching admins...');
+      
       // First get admin user_ids
       const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('user_id')
         .eq('role', 'admin');
       
-      if (roleError || !roleData || roleData.length === 0) {
+      console.log('Admin role data:', roleData, 'Error:', roleError);
+      
+      if (roleError) {
         console.error('Error fetching admin roles:', roleError);
         setAdminUsers([]);
         return;
       }
 
-      // Then get their profiles, excluding current user
-      const adminIds = roleData.map(r => r.user_id).filter(id => id !== user?.id);
-      
-      if (adminIds.length === 0) {
-        // If current user is the only admin, still show them (for testing purposes)
-        const allAdminIds = roleData.map(r => r.user_id);
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, full_name, email')
-          .in('id', allAdminIds);
-        
-        if (!profileError && profileData) {
-          setAdminUsers(profileData.map(profile => ({
-            id: profile.id,
-            name: profile.full_name || profile.email || 'Admin',
-          })));
-        }
+      if (!roleData || roleData.length === 0) {
+        console.log('No admin users found in user_roles');
+        setAdminUsers([]);
         return;
       }
 
+      // Get all admin IDs
+      const adminIds = roleData.map(r => r.user_id);
+      console.log('Admin IDs:', adminIds);
+      
+      // Fetch their profiles
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('id, full_name, email')
         .in('id', adminIds);
       
-      if (!profileError && profileData) {
+      console.log('Admin profiles:', profileData, 'Error:', profileError);
+      
+      if (profileError) {
+        console.error('Error fetching admin profiles:', profileError);
+        setAdminUsers([]);
+        return;
+      }
+
+      if (profileData && profileData.length > 0) {
         setAdminUsers(profileData.map(profile => ({
           id: profile.id,
-          name: profile.full_name || profile.email || 'Admin',
+          name: profile.full_name || profile.email?.split('@')[0] || 'Admin',
+          email: profile.email,
         })));
+      } else {
+        console.log('No admin profiles found');
+        setAdminUsers([]);
       }
     };
     
-    fetchAdmins();
+    if (user) {
+      fetchAdmins();
+    }
   }, [user]);
 
   const handleStartCall = async (adminId?: string) => {
@@ -219,33 +228,36 @@ const Chat = () => {
           <p className="text-muted-foreground">Connect with admins via video call</p>
         </div>
 
-        {/* Available Admins */}
+        {/* Call Admin Section */}
         <Card className="mb-6 p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <h2 className="text-xl font-semibold text-foreground mb-4">Available Admins</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-4">Contact Admin</h2>
           {adminUsers.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No admin users available</p>
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-4">No admin is available at the moment</p>
+              <p className="text-sm text-muted-foreground">Please try again later</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {adminUsers.map((admin) => (
-                <div key={admin.id} className="flex items-center justify-between p-3 rounded-lg bg-background/50 hover:bg-background transition-colors">
+                <div key={admin.id} className="flex items-center justify-between p-4 rounded-lg bg-background/50 hover:bg-background transition-colors">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {admin.name.split(" ").map(n => n[0]).join("")}
+                    <Avatar className="h-12 w-12">
+                      <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                        AD
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium text-foreground">{admin.name}</p>
-                      <p className="text-xs text-muted-foreground">Admin</p>
+                      <p className="font-semibold text-foreground">Admin</p>
+                      <p className="text-xs text-muted-foreground">Available for calls</p>
                     </div>
                   </div>
                   <Button
                     onClick={() => handleStartCall(admin.id)}
-                    size="sm"
+                    size="default"
                     className="rounded-full"
                   >
                     <Video className="h-4 w-4 mr-2" />
-                    Call
+                    Call Admin
                   </Button>
                 </div>
               ))}
