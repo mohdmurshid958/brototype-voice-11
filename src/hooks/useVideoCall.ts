@@ -119,6 +119,21 @@ export const useVideoCall = (callId: string, remoteUserId?: string) => {
     if (!user || !remoteUserId) return;
 
     try {
+      // First, check if a call record already exists for this stream_call_id
+      const { data: existingCall, error: fetchError } = await supabase
+        .from('video_calls')
+        .select('id')
+        .eq('stream_call_id', callId)
+        .maybeSingle();
+
+      if (existingCall) {
+        // Use existing call record
+        setDbCallId(existingCall.id);
+        console.log("Using existing call record:", existingCall.id);
+        return;
+      }
+
+      // Create new call record if none exists
       const isStudent = userRole === 'student';
       const { data, error } = await supabase
         .from('video_calls')

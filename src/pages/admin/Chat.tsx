@@ -185,24 +185,59 @@ const Chat = () => {
     fetchStudents();
   }, []);
 
-  const handleAcceptCall = (requestId: string, studentId?: string) => {
-    if (!studentId && studentUsers.length > 0) {
-      studentId = studentUsers[0].id;
-    }
-    
+  const handleAcceptCall = async (callRecordId: string, studentId?: string) => {
     if (!studentId) return;
 
-    const callId = `call-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    navigate(`/video-call/${callId}`, {
+    // Find the call record to get the stream_call_id
+    const call = pendingCalls.find(c => c.id === callRecordId);
+    if (!call) return;
+
+    // Get the actual video_calls record to find stream_call_id
+    const { data: callData, error: callError } = await supabase
+      .from('video_calls')
+      .select('stream_call_id, id')
+      .eq('id', callRecordId)
+      .single();
+
+    if (callError || !callData) {
+      console.error('Error fetching call:', callError);
+      return;
+    }
+
+    // Update call status to active
+    await supabase
+      .from('video_calls')
+      .update({ status: 'active', started_at: new Date().toISOString() })
+      .eq('id', callRecordId);
+
+    navigate(`/video-call/${callData.stream_call_id}`, {
       state: {
         remoteUserId: studentId,
-        isIncoming: false,
+        isIncoming: true,
       },
     });
   };
 
-  const handleCallStudent = (studentId: string) => {
+  const handleCallStudent = async (studentId: string) => {
+    if (!user) return;
+
+    // Create a call record
     const callId = `call-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const { error } = await supabase
+      .from('video_calls')
+      .insert({
+        stream_call_id: callId,
+        student_id: studentId,
+        admin_id: user.id,
+        status: 'pending',
+      });
+
+    if (error) {
+      console.error('Error creating call:', error);
+      alert('Failed to create call');
+      return;
+    }
+
     navigate(`/video-call/${callId}`, {
       state: {
         remoteUserId: studentId,
@@ -258,6 +293,40 @@ const Chat = () => {
             </div>
           </Card>
         </div>
+
+        {/* Available Students */}
+        <Card className="mb-6 p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+          <h2 className="text-xl font-semibold text-foreground mb-4">Available Students</h2>
+          {studentUsers.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No student users available</p>
+          ) : (
+            <div className="space-y-3">
+              {studentUsers.map((student) => (
+                <div key={student.id} className="flex items-center justify-between p-3 rounded-lg bg-background/50 hover:bg-background transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {student.name.split(" ").map(n => n[0]).join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium text-foreground">{student.name}</p>
+                      <p className="text-xs text-muted-foreground">Student</p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => handleCallStudent(student.id)}
+                    size="sm"
+                    className="rounded-full"
+                  >
+                    <Video className="h-4 w-4 mr-2" />
+                    Call
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
 
         {/* Search */}
         <div className="mb-6">

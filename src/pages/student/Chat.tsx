@@ -141,18 +141,34 @@ const Chat = () => {
     fetchAdmins();
   }, []);
 
-  const handleStartCall = (adminId?: string) => {
+  const handleStartCall = async (adminId?: string) => {
     if (!adminId && adminUsers.length > 0) {
       // Default to first admin if none specified
       adminId = adminUsers[0].id;
     }
     
-    if (!adminId) {
+    if (!adminId || !user) {
       alert('No admin users available');
       return;
     }
 
+    // Create a pending call record
     const callId = `call-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const { error } = await supabase
+      .from('video_calls')
+      .insert({
+        stream_call_id: callId,
+        student_id: user.id,
+        admin_id: adminId,
+        status: 'pending',
+      });
+
+    if (error) {
+      console.error('Error creating call:', error);
+      alert('Failed to create call');
+      return;
+    }
+
     navigate(`/video-call/${callId}`, {
       state: {
         remoteUserId: adminId,
@@ -170,21 +186,38 @@ const Chat = () => {
           <p className="text-muted-foreground">Connect with admins via video call</p>
         </div>
 
-        {/* New Call Card */}
+        {/* Available Admins */}
         <Card className="mb-6 p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-foreground mb-2">Start New Video Call</h2>
-              <p className="text-sm text-muted-foreground">Request a video consultation with an admin</p>
+          <h2 className="text-xl font-semibold text-foreground mb-4">Available Admins</h2>
+          {adminUsers.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No admin users available</p>
+          ) : (
+            <div className="space-y-3">
+              {adminUsers.map((admin) => (
+                <div key={admin.id} className="flex items-center justify-between p-3 rounded-lg bg-background/50 hover:bg-background transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {admin.name.split(" ").map(n => n[0]).join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium text-foreground">{admin.name}</p>
+                      <p className="text-xs text-muted-foreground">Admin</p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => handleStartCall(admin.id)}
+                    size="sm"
+                    className="rounded-full"
+                  >
+                    <Video className="h-4 w-4 mr-2" />
+                    Call
+                  </Button>
+                </div>
+              ))}
             </div>
-            <Button
-              onClick={() => handleStartCall()}
-              size="lg"
-              className="rounded-full h-14 w-14 p-0"
-            >
-              <Plus className="h-6 w-6" />
-            </Button>
-          </div>
+          )}
         </Card>
 
         {/* Search */}

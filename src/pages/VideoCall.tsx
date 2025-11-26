@@ -68,13 +68,17 @@ const VideoCall = () => {
 
   // Start or answer call
   useEffect(() => {
-    if (isIncoming && offer) {
-      // Answer incoming call
-      answerCall(offer, remoteUserId);
-    } else if (remoteUserId && !isIncoming) {
-      // Start outgoing call
-      startCall();
-    }
+    const initCall = async () => {
+      if (isIncoming && offer) {
+        // Answer incoming call
+        answerCall(offer, remoteUserId);
+      } else if (remoteUserId && !isIncoming) {
+        // Start outgoing call
+        startCall();
+      }
+    };
+    
+    initCall();
   }, []);
 
   // Call duration timer
