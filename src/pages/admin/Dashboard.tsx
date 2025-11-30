@@ -1,4 +1,3 @@
-import { AdminSidebar } from "@/components/AdminSidebar";
 import { Card } from "@/components/ui/card";
 import { AlertCircle, Clock, CheckCircle, Users } from "lucide-react";
 import { useStats } from "@/hooks/useStats";
@@ -44,10 +43,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-
-      <main className="flex-1 p-8 bg-background">
+    <main className="flex-1 p-8 bg-background">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
@@ -95,6 +91,5 @@ export default function AdminDashboard() {
           </Card>
         </div>
       </main>
-    </div>
   );
 }

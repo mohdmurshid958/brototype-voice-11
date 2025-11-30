@@ -1,4 +1,3 @@
-import { AdminSidebar } from "@/components/AdminSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,9 +82,7 @@ export default function AdminCategories() {
   }, [categoryStats]);
 
   return (
-    <div className="flex min-h-screen w-full">
-      <AdminSidebar />
-
+    <>
       <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
@@ -243,6 +240,6 @@ export default function AdminCategories() {
           <Progress value={undefined} className="h-1 rounded-none" />
         </div>
       )}
-    </div>
+    </>
   );
 }
