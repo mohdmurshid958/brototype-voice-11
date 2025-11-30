@@ -1,6 +1,3 @@
-import { AdminSidebar } from "@/components/AdminSidebar";
-import { AdminDock } from "@/components/AdminDock";
-import { AdminMobileNav } from "@/components/AdminMobileNav";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, Area, AreaChart, PieChart, Pie, Label, XAxis, CartesianGrid } from "recharts";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
@@ -94,24 +91,15 @@ export default function AdminAnalytics() {
 
   if (categoryLoading || statusLoading || timelineLoading) {
     return (
-      <div className="flex min-h-screen w-full">
-        <AdminSidebar />
-        <AdminMobileNav />
-        <AdminDock />
-        <main className="flex-1 p-4 md:p-8 pb-24 md:pb-24 bg-background">
-          <p className="text-muted-foreground">Loading analytics...</p>
-        </main>
-      </div>
+      <main className="flex-1 p-4 md:p-8 pb-24 md:pb-24 bg-background">
+        <p className="text-muted-foreground">Loading analytics...</p>
+      </main>
     );
   }
 
   return (
-    <div className="flex min-h-screen w-full">
-      <AdminSidebar />
-      <AdminMobileNav />
-      <AdminDock />
 
-      <main className="flex-1 p-4 md:p-8 pb-24 md:pb-24 bg-background">
+    <main className="flex-1 p-4 md:p-8 pb-24 md:pb-24 bg-background">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl md:text-3xl font-bold mb-2">Analytics Dashboard</h1>
           <p className="text-sm md:text-base text-muted-foreground mb-6 md:mb-8">Visualize complaint trends and metrics</p>
@@ -330,6 +318,5 @@ export default function AdminAnalytics() {
           </Card>
         </div>
       </main>
-    </div>
   );
 }

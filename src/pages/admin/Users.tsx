@@ -1,4 +1,3 @@
-import { AdminSidebar } from "@/components/AdminSidebar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,10 +19,7 @@ export default function AdminUsers() {
   ) || [];
 
   return (
-    <div className="flex min-h-screen w-full">
-      <AdminSidebar />
-
-      <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
+    <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
             <div>
@@ -131,6 +127,5 @@ export default function AdminUsers() {
           )}
         </div>
       </main>
-    </div>
   );
 }

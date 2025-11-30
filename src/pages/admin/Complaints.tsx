@@ -1,4 +1,3 @@
-import { AdminSidebar } from "@/components/AdminSidebar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,10 +33,7 @@ export default function AdminComplaints() {
   };
 
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-
-      <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
+    <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl md:text-3xl font-bold mb-2">Manage Complaints</h1>
           <p className="text-muted-foreground mb-6 md:mb-8">Review and respond to student complaints</p>
@@ -158,6 +154,5 @@ export default function AdminComplaints() {
           )}
         </div>
       </main>
-    </div>
   );
 }

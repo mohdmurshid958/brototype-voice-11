@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { AdminSidebar } from "@/components/AdminSidebar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,31 +56,22 @@ export default function AdminComplaintDetail() {
 
   if (complaintLoading) {
     return (
-      <div className="flex min-h-screen">
-        <AdminSidebar />
-        <main className="flex-1 p-8">
-          <p className="text-muted-foreground">Loading complaint...</p>
-        </main>
-      </div>
+      <main className="flex-1 p-8">
+        <p className="text-muted-foreground">Loading complaint...</p>
+      </main>
     );
   }
 
   if (!complaint) {
     return (
-      <div className="flex min-h-screen">
-        <AdminSidebar />
-        <main className="flex-1 p-8">
-          <p className="text-muted-foreground">Complaint not found</p>
-        </main>
-      </div>
+      <main className="flex-1 p-8">
+        <p className="text-muted-foreground">Complaint not found</p>
+      </main>
     );
   }
 
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-
-      <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
+    <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
         <div className="max-w-4xl mx-auto">
           <Button
             variant="ghost"
@@ -226,6 +216,5 @@ export default function AdminComplaintDetail() {
           </Card>
         </div>
       </main>
-    </div>
   );
 }
