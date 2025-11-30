@@ -110,57 +110,48 @@ const Chat = () => {
     },
   ];
 
-  // Fetch admin users
+  // Fetch admin users (single admin: admin@example.com)
   useEffect(() => {
     const fetchAdmins = async () => {
       console.log('Fetching admins...');
-      
-      // First get admin user_ids
+
+      // Get admin user_id from user_roles (single admin)
       const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('user_id')
-        .eq('role', 'admin');
-      
+        .eq('role', 'admin')
+        .maybeSingle();
+
       console.log('Admin role data:', roleData, 'Error:', roleError);
-      
-      if (roleError) {
-        console.error('Error fetching admin roles:', roleError);
+
+      if (roleError || !roleData) {
+        console.error('Error fetching admin role or no admin found:', roleError);
         setAdminUsers([]);
         return;
       }
 
-      if (!roleData || roleData.length === 0) {
-        console.log('No admin users found in user_roles');
-        setAdminUsers([]);
-        return;
-      }
-
-      // Get admin ID (there's only one admin)
-      const adminId = roleData[0].user_id;
+      const adminId = roleData.user_id;
       console.log('Admin ID:', adminId);
-      
-      // Fetch admin profile directly by ID
+
+      // Try to fetch profile, but do NOT fail if not visible because of RLS
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('id, full_name, email')
+        .select('email')
         .eq('id', adminId)
-        .single();
-      
-      console.log('Admin profile:', profileData, 'Error:', profileError);
-      
-      if (profileError || !profileData) {
-        console.error('Error fetching admin profile:', profileError);
-        setAdminUsers([]);
-        return;
-      }
+        .maybeSingle();
 
-      setAdminUsers([{
-        id: profileData.id,
-        name: 'Admin',
-        email: profileData.email,
-      }]);
+      console.log('Admin profile (may be null due to RLS):', profileData, 'Error:', profileError);
+
+      // Always expose a single admin entry using the known ID
+      setAdminUsers([
+        {
+          id: adminId,
+          name: 'Admin',
+          email: profileData?.email || 'admin@example.com',
+        },
+      ]);
     };
-    
+
     if (user) {
       fetchAdmins();
     }
