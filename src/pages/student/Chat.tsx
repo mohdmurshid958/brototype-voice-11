@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Video, Phone, Search, Plus } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -7,13 +9,78 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 const Chat = () => {
   const navigate = useNavigate();
+  const { user, userRole } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [adminUsers, setAdminUsers] = useState<any[]>([]);
+  const [pastCalls, setPastCalls] = useState<any[]>([]);
 
-  // Mock data for past calls
-  const pastCalls = [
+  // Fetch past calls
+  useEffect(() => {
+    const fetchCalls = async () => {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('video_calls')
+        .select('*')
+        .eq('student_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (!error && data) {
+        // Fetch admin profiles
+        const adminIds = data.filter(call => call.admin_id).map(call => call.admin_id!);
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', adminIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+        setPastCalls(data.map(call => {
+          const profile = call.admin_id ? profileMap.get(call.admin_id) : null;
+          return {
+            id: call.id,
+            adminName: profile?.full_name || profile?.email?.split('@')[0] || 'Admin',
+            adminAvatar: "",
+            date: new Date(call.created_at).toLocaleString(),
+            duration: call.duration_seconds ? `${Math.floor(call.duration_seconds / 60)} min` : 'N/A',
+            status: call.status === 'ended' ? 'completed' : call.status,
+            type: "video",
+          };
+        }));
+      }
+    };
+
+    fetchCalls();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('student_calls')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'video_calls',
+          filter: `student_id=eq.${user?.id}`,
+        },
+        () => {
+          fetchCalls();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  // Mock data for past calls (keeping as fallback)
+  const mockPastCalls = [
     {
       id: "1",
       adminName: "Dr. Sarah Johnson",
@@ -43,8 +110,109 @@ const Chat = () => {
     },
   ];
 
-  const handleStartCall = () => {
-    navigate("/video-call");
+  // Fetch admin users
+  useEffect(() => {
+    const fetchAdmins = async () => {
+      console.log('Fetching admins...');
+      
+      // First get admin user_ids
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'admin');
+      
+      console.log('Admin role data:', roleData, 'Error:', roleError);
+      
+      if (roleError) {
+        console.error('Error fetching admin roles:', roleError);
+        setAdminUsers([]);
+        return;
+      }
+
+      if (!roleData || roleData.length === 0) {
+        console.log('No admin users found in user_roles');
+        setAdminUsers([]);
+        return;
+      }
+
+      // Get admin ID (there's only one admin)
+      const adminId = roleData[0].user_id;
+      console.log('Admin ID:', adminId);
+      
+      // Fetch admin profile directly by ID
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .eq('id', adminId)
+        .single();
+      
+      console.log('Admin profile:', profileData, 'Error:', profileError);
+      
+      if (profileError || !profileData) {
+        console.error('Error fetching admin profile:', profileError);
+        setAdminUsers([]);
+        return;
+      }
+
+      setAdminUsers([{
+        id: profileData.id,
+        name: 'Admin',
+        email: profileData.email,
+      }]);
+    };
+    
+    if (user) {
+      fetchAdmins();
+    }
+  }, [user]);
+
+  const handleStartCall = async (adminId?: string) => {
+    if (!adminId && adminUsers.length > 0) {
+      // Default to first admin if none specified
+      adminId = adminUsers[0].id;
+    }
+    
+    if (!adminId || !user) {
+      toast({
+        title: "Cannot Start Call",
+        description: "No admin users are available at the moment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create a pending call record
+    const callId = `call-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const { error } = await supabase
+      .from('video_calls')
+      .insert({
+        stream_call_id: callId,
+        student_id: user.id,
+        admin_id: adminId,
+        status: 'pending',
+      });
+
+    if (error) {
+      console.error('Error creating call:', error);
+      toast({
+        title: "Call Failed",
+        description: "Failed to initiate call. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Calling Admin",
+      description: "Connecting to admin...",
+    });
+
+    navigate(`/video-call/${callId}`, {
+      state: {
+        remoteUserId: adminId,
+        isIncoming: false,
+      },
+    });
   };
 
   return (
@@ -56,21 +224,41 @@ const Chat = () => {
           <p className="text-muted-foreground">Connect with admins via video call</p>
         </div>
 
-        {/* New Call Card */}
+        {/* Call Admin Section */}
         <Card className="mb-6 p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-foreground mb-2">Start New Video Call</h2>
-              <p className="text-sm text-muted-foreground">Request a video consultation with an admin</p>
+          <h2 className="text-xl font-semibold text-foreground mb-4">Contact Admin</h2>
+          {adminUsers.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-4">No admin is available at the moment</p>
+              <p className="text-sm text-muted-foreground">Please try again later</p>
             </div>
-            <Button
-              onClick={handleStartCall}
-              size="lg"
-              className="rounded-full h-14 w-14 p-0"
-            >
-              <Plus className="h-6 w-6" />
-            </Button>
-          </div>
+          ) : (
+            <div className="space-y-3">
+              {adminUsers.map((admin) => (
+                <div key={admin.id} className="flex items-center justify-between p-4 rounded-lg bg-background/50 hover:bg-background transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12">
+                      <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                        AD
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold text-foreground">Admin</p>
+                      <p className="text-xs text-muted-foreground">Available for calls</p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => handleStartCall(admin.id)}
+                    size="default"
+                    className="rounded-full"
+                  >
+                    <Video className="h-4 w-4 mr-2" />
+                    Call Admin
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
 
         {/* Search */}
@@ -95,7 +283,11 @@ const Chat = () => {
           </TabsList>
 
           <TabsContent value="all" className="space-y-3">
-            {pastCalls.map((call) => (
+            {pastCalls.length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">No call history yet</p>
+              </Card>
+            ) : pastCalls.map((call) => (
               <Card
                 key={call.id}
                 className="p-4 hover:bg-accent/50 transition-colors cursor-pointer"
@@ -141,7 +333,11 @@ const Chat = () => {
           </TabsContent>
 
           <TabsContent value="completed" className="space-y-3">
-            {pastCalls.filter(call => call.status === "completed").map((call) => (
+            {pastCalls.filter(call => call.status === "completed").length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">No completed calls yet</p>
+              </Card>
+            ) : pastCalls.filter(call => call.status === "completed").map((call) => (
               <Card
                 key={call.id}
                 className="p-4 hover:bg-accent/50 transition-colors cursor-pointer"
@@ -173,7 +369,11 @@ const Chat = () => {
           </TabsContent>
 
           <TabsContent value="missed" className="space-y-3">
-            {pastCalls.filter(call => call.status === "missed").map((call) => (
+            {pastCalls.filter(call => call.status === "missed" || call.status === "failed").length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">No missed calls</p>
+              </Card>
+            ) : pastCalls.filter(call => call.status === "missed" || call.status === "failed").map((call) => (
               <Card
                 key={call.id}
                 className="p-4 hover:bg-accent/50 transition-colors cursor-pointer"
