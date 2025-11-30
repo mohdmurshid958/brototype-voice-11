@@ -176,40 +176,40 @@ export default function Landing() {
       <StickyFeatures />
 
       {/* Complaints Demo Section */}
-      <section className="py-20 px-4 relative overflow-hidden">
+      <section className="py-12 md:py-20 px-4 relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
           <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse delay-500" />
         </div>
         <div className="container mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center max-w-7xl mx-auto">
             {/* Left Content */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="space-y-6"
+              className="space-y-4 md:space-y-6"
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary backdrop-blur-sm">
-                <MessageSquare className="h-4 w-4" />
-                <span className="text-sm font-semibold">Live Demo</span>
+              <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-primary/10 border border-primary/20 text-primary backdrop-blur-sm">
+                <MessageSquare className="h-3 w-3 md:h-4 md:w-4" />
+                <span className="text-xs md:text-sm font-semibold">Live Demo</span>
               </div>
               
-              <h2 className="text-4xl md:text-5xl font-bold leading-tight">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
                 Track Your Complaints in{" "}
                 <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   Real-Time
                 </span>
               </h2>
               
-              <p className="text-lg text-muted-foreground leading-relaxed">
+              <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
                 See how complaints are managed transparently. From submission to resolution, 
                 track every step of the process with instant updates and clear communication.
               </p>
 
-              <div className="space-y-4 pt-4">
+              <div className="space-y-3 md:space-y-4 pt-2 md:pt-4">
                 {[
                   { icon: AlertCircle, title: "Instant Submission", desc: "Submit complaints in seconds with our intuitive interface" },
                   { icon: Clock, title: "Real-time Updates", desc: "Get notified immediately when status changes" },
@@ -221,20 +221,20 @@ export default function Landing() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.1, duration: 0.5 }}
-                    className="flex gap-4 p-4 rounded-xl bg-surface-elevated border border-border/50 hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/10"
+                    className="flex gap-3 md:gap-4 p-3 md:p-4 rounded-xl bg-surface-elevated border border-border/50 hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/10"
                   >
-                    <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <feature.icon className="h-6 w-6 text-primary" />
+                    <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <feature.icon className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold mb-1">{feature.title}</h3>
-                      <p className="text-sm text-muted-foreground">{feature.desc}</p>
+                      <h3 className="font-semibold mb-0.5 md:mb-1 text-sm md:text-base">{feature.title}</h3>
+                      <p className="text-xs md:text-sm text-muted-foreground">{feature.desc}</p>
                     </div>
                   </motion.div>
                 ))}
               </div>
 
-              <Button size="lg" asChild className="hero-gradient mt-6 hover:scale-105 transition-transform shadow-lg">
+              <Button size="lg" asChild className="hero-gradient mt-4 md:mt-6 hover:scale-105 transition-transform shadow-lg w-full sm:w-auto">
                 <Link to="/student/dashboard">
                   Try It Now
                   <Send className="ml-2 h-4 w-4" />
@@ -248,39 +248,41 @@ export default function Landing() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="flex justify-center items-center min-h-[500px]"
+              className="flex justify-center items-center min-h-[400px] md:min-h-[500px] mt-8 lg:mt-0"
             >
-              <DisplayCards 
-                cards={[
-                  {
-                    icon: <AlertCircle className="size-4 text-destructive" />,
-                    title: "Urgent",
-                    description: "AC not working in Lab 2",
-                    date: "2 hours ago",
-                    iconClassName: "text-destructive",
-                    titleClassName: "text-destructive",
-                    className: "[grid-area:stack] hover:-translate-y-10 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0"
-                  },
-                  {
-                    icon: <FileText className="size-4 text-primary" />,
-                    title: "In Progress",
-                    description: "WiFi connectivity issues",
-                    date: "1 day ago",
-                    iconClassName: "text-primary",
-                    titleClassName: "text-primary",
-                    className: "[grid-area:stack] translate-x-16 translate-y-10 hover:-translate-y-1 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0"
-                  },
-                  {
-                    icon: <CheckCircle className="size-4 text-emerald-500" />,
-                    title: "Resolved",
-                    description: "Projector repaired successfully",
-                    date: "3 days ago",
-                    iconClassName: "text-emerald-500",
-                    titleClassName: "text-emerald-500",
-                    className: "[grid-area:stack] translate-x-32 translate-y-20 hover:translate-y-10"
-                  }
-                ]}
-              />
+              <div className="scale-75 sm:scale-90 md:scale-100">
+                <DisplayCards 
+                  cards={[
+                    {
+                      icon: <AlertCircle className="size-4 text-destructive" />,
+                      title: "Urgent",
+                      description: "AC not working in Lab 2",
+                      date: "2 hours ago",
+                      iconClassName: "text-destructive",
+                      titleClassName: "text-destructive",
+                      className: "[grid-area:stack] hover:-translate-y-10 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0"
+                    },
+                    {
+                      icon: <FileText className="size-4 text-primary" />,
+                      title: "In Progress",
+                      description: "WiFi connectivity issues",
+                      date: "1 day ago",
+                      iconClassName: "text-primary",
+                      titleClassName: "text-primary",
+                      className: "[grid-area:stack] translate-x-16 translate-y-10 hover:-translate-y-1 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0"
+                    },
+                    {
+                      icon: <CheckCircle className="size-4 text-emerald-500" />,
+                      title: "Resolved",
+                      description: "Projector repaired successfully",
+                      date: "3 days ago",
+                      iconClassName: "text-emerald-500",
+                      titleClassName: "text-emerald-500",
+                      className: "[grid-area:stack] translate-x-32 translate-y-20 hover:translate-y-10"
+                    }
+                  ]}
+                />
+              </div>
             </motion.div>
           </div>
         </div>

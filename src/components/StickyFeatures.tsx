@@ -72,12 +72,12 @@ export function StickyFeatures() {
   }, [activeImage]);
 
   return (
-    <section id="features" className="py-20 px-4 relative overflow-hidden">
+    <section id="features" className="py-12 md:py-20 px-4 relative overflow-hidden">
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-1/4 right-1/3 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
       </div>
       
-      <div className="container mx-auto mb-12">
+      <div className="container mx-auto mb-8 md:mb-12">
         <motion.div 
           className="text-center"
           initial={{ opacity: 0, y: 20 }}
@@ -85,17 +85,49 @@ export function StickyFeatures() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Powerful Features
           </h2>
-          <p className="text-muted-foreground text-lg md:text-xl">
+          <p className="text-muted-foreground text-base md:text-lg lg:text-xl px-4">
             Everything you need for effective complaint management
           </p>
         </motion.div>
       </div>
 
       <div className="container mx-auto">
-        <div className="grid lg:grid-cols-2 gap-10 max-w-7xl mx-auto">
+        {/* Mobile: Stack features with images */}
+        <div className="lg:hidden space-y-8">
+          {features.map((feature, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1, duration: 0.5 }}
+              className="space-y-4"
+            >
+              <div className="w-full h-48 sm:h-64 bg-muted rounded-xl overflow-hidden shadow-lg">
+                <img
+                  src={feature.image}
+                  alt={feature.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="px-2">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 mb-4 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <feature.icon className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">{feature.title}</h3>
+                <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                  {feature.desc}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Desktop: Sticky scroll layout */}
+        <div className="hidden lg:grid lg:grid-cols-2 gap-10 max-w-7xl mx-auto">
           {/* LEFT: Scrollable Content */}
           <div 
             ref={contentRef}
@@ -120,7 +152,7 @@ export function StickyFeatures() {
           </div>
 
           {/* RIGHT: Sticky Image */}
-          <div className="hidden lg:block">
+          <div>
             <div className="sticky top-20 h-[40vh] bg-muted rounded-2xl overflow-hidden shadow-2xl">
               <img
                 src={activeImage}
