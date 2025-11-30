@@ -154,7 +154,7 @@ const VideoCall = () => {
       <div className="flex-1 relative">
         {/* Remote Video (Main) */}
         <div className="absolute inset-0 bg-black">
-          {remoteStream ? (
+          {remoteStream && remoteStream.getVideoTracks().length > 0 ? (
             <video
               ref={remoteVideoRef}
               autoPlay
@@ -165,8 +165,8 @@ const VideoCall = () => {
             <div className="w-full h-full bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
               <div className="text-center">
                 <Avatar className="h-32 w-32 mx-auto mb-4 ring-4 ring-primary/50">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-4xl">
-                    {participantName.split(" ").map(n => n[0]).join("")}
+                  <AvatarFallback className="bg-primary text-primary-foreground text-5xl font-bold">
+                    {participantRole === 'Admin' ? 'A' : participantName.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <h2 className="text-2xl font-semibold text-white mb-1">{participantName}</h2>
@@ -179,7 +179,7 @@ const VideoCall = () => {
         {/* Local Video (Picture-in-Picture) */}
         <Card className="absolute top-20 right-4 w-48 h-36 overflow-hidden border-2 border-primary/50 shadow-2xl">
           <div className="relative w-full h-full bg-black">
-            {localStream && isVideoOn ? (
+            {localStream && localStream.getVideoTracks().length > 0 && isVideoOn ? (
               <video
                 ref={localVideoRef}
                 autoPlay
@@ -189,7 +189,11 @@ const VideoCall = () => {
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
-                <VideoOff className="h-8 w-8 text-gray-400" />
+                <Avatar className="h-16 w-16">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
+                    {user?.email?.charAt(0).toUpperCase() || 'Y'}
+                  </AvatarFallback>
+                </Avatar>
               </div>
             )}
             <div className="absolute bottom-2 left-2 text-xs text-white font-medium bg-black/50 px-2 py-1 rounded">

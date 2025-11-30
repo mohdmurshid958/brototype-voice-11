@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Phone, PhoneOff } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -103,42 +102,46 @@ export const IncomingCallToast = () => {
   const callerDisplay = incomingCall.userRole === 'admin' ? 'Admin' : incomingCall.userName;
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-5">
-      <Card className="p-6 shadow-2xl border-2 border-primary bg-background min-w-[380px]">
-        <div className="flex flex-col items-center gap-4">
-          <Avatar className="h-20 w-20 ring-4 ring-primary animate-pulse">
-            <AvatarFallback className="bg-primary text-primary-foreground text-3xl font-bold">
-              {callerRole === 'Admin' ? 'A' : incomingCall.userName.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          
-          <div className="text-center">
-            <p className="text-2xl font-bold text-foreground mb-1">
-              {callerDisplay}
-            </p>
-            <p className="text-base text-muted-foreground mb-2">
-              {callerRole} calling...
-            </p>
+    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-5 duration-300">
+      <div className="bg-gradient-to-r from-gray-900 to-black rounded-full shadow-2xl border-2 border-white/10 px-6 py-4 min-w-[400px] max-w-[500px]">
+        <div className="flex items-center justify-between gap-6">
+          {/* Avatar and Info */}
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            <Avatar className="h-14 w-14 ring-2 ring-white/20 flex-shrink-0">
+              <AvatarFallback className="bg-primary text-primary-foreground text-xl font-bold">
+                {callerRole === 'Admin' ? 'A' : incomingCall.userName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-semibold text-lg truncate">
+                {callerDisplay}
+              </p>
+              <p className="text-gray-300 text-sm">
+                {callerRole} calling...
+              </p>
+            </div>
           </div>
 
-          <div className="flex gap-6">
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3 flex-shrink-0">
             <Button
               size="lg"
-              className="rounded-full h-16 w-16 bg-red-500 hover:bg-red-600 shadow-lg"
+              className="rounded-full h-14 w-14 p-0 bg-red-500 hover:bg-red-600 shadow-lg border-2 border-white/20"
               onClick={handleReject}
             >
-              <PhoneOff className="h-7 w-7" />
+              <PhoneOff className="h-6 w-6 text-white" />
             </Button>
             <Button
               size="lg"
-              className="rounded-full h-16 w-16 bg-green-500 hover:bg-green-600 shadow-lg"
+              className="rounded-full h-14 w-14 p-0 bg-green-500 hover:bg-green-600 shadow-lg border-2 border-white/20"
               onClick={handleAccept}
             >
-              <Phone className="h-7 w-7" />
+              <Phone className="h-6 w-6 text-white" />
             </Button>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

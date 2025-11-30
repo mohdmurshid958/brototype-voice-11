@@ -32,11 +32,11 @@ export const useVideoCall = (callId: string, remoteUserId?: string) => {
   const channelRef = useRef<any>(null);
   const pendingCandidatesRef = useRef<RTCIceCandidate[]>([]);
 
-  // Initialize local media stream with explicit permission request
+  // Initialize local media stream - continue call even if media fails
   const initializeMedia = async () => {
+    console.log("🎥 Requesting camera and microphone permissions...");
+    
     try {
-      console.log("🎥 Requesting camera and microphone permissions...");
-      
       // Request permissions explicitly to trigger browser prompt
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { 
@@ -51,33 +51,15 @@ export const useVideoCall = (callId: string, remoteUserId?: string) => {
         },
       });
       
-      console.log("✅ Media permissions granted:", {
-        video: stream.getVideoTracks().length > 0,
-        audio: stream.getAudioTracks().length > 0
-      });
-      
+      console.log("✅ Media permissions granted");
       setLocalStream(stream);
       return stream;
       
     } catch (error: any) {
-      console.error("❌ Media access error:", error.name, error.message);
+      console.log("⚠️ Full media access failed, trying alternatives...");
       
-      // Handle specific permission errors
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-        toast({
-          title: "Camera/Microphone Blocked",
-          description: "Please allow access in your browser settings and refresh",
-          variant: "destructive",
-        });
-        // Continue without media so call can still proceed
-        const emptyStream = new MediaStream();
-        setLocalStream(emptyStream);
-        return emptyStream;
-      }
-      
-      // Try video only if both failed
+      // Try video only
       try {
-        console.log("🎥 Trying video only...");
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { 
             width: { ideal: 1280 },
@@ -86,16 +68,14 @@ export const useVideoCall = (callId: string, remoteUserId?: string) => {
           },
           audio: false,
         });
-        console.log("✅ Video only mode enabled");
+        console.log("✅ Video only mode");
         setLocalStream(stream);
         toast({
-          title: "Video Only",
-          description: "Call will proceed without microphone",
+          title: "Video Only Mode",
+          description: "Connected without microphone",
         });
         return stream;
       } catch (videoError) {
-        console.log("❌ Video only failed, trying audio only...");
-        
         // Try audio only
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
@@ -106,22 +86,21 @@ export const useVideoCall = (callId: string, remoteUserId?: string) => {
               autoGainControl: true,
             },
           });
-          console.log("✅ Audio only mode enabled");
+          console.log("✅ Audio only mode");
           setLocalStream(stream);
           toast({
-            title: "Audio Only",
-            description: "Call will proceed without camera",
+            title: "Audio Only Mode",
+            description: "Connected without camera",
           });
           return stream;
         } catch (audioError) {
-          console.log("❌ Audio only failed, continuing without media");
-          
-          // Continue without any media
+          // Continue without any media - call will still work
+          console.log("✅ No media mode - call will connect anyway");
           const emptyStream = new MediaStream();
           setLocalStream(emptyStream);
           toast({
-            title: "No Media",
-            description: "Proceeding without camera or microphone",
+            title: "Connecting Without Media",
+            description: "You can still receive video and audio",
           });
           return emptyStream;
         }

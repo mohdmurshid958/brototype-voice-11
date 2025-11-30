@@ -1,15 +1,36 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Clock, CheckCircle, AlertCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Plus, Clock, CheckCircle, AlertCircle, Video } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useComplaints } from "@/hooks/useComplaints";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 export default function StudentDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: complaints, isLoading } = useComplaints(user?.id);
+  const [adminId, setAdminId] = useState<string | null>(null);
+
+  // Fetch admin ID on mount
+  useEffect(() => {
+    const fetchAdmin = async () => {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'admin')
+        .single();
+      
+      if (roleData) {
+        setAdminId(roleData.user_id);
+      }
+    };
+    
+    fetchAdmin();
+  }, []);
 
   const stats = useMemo(() => {
     if (!complaints) return [
@@ -39,6 +60,49 @@ export default function StudentDashboard() {
       .slice(0, 5);
   }, [complaints]);
 
+  const handleCallAdmin = async () => {
+    if (!adminId || !user) {
+      toast({
+        title: "Cannot Start Call",
+        description: "Admin is not available at the moment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const callId = `call-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const { error } = await supabase
+      .from('video_calls')
+      .insert({
+        stream_call_id: callId,
+        student_id: user.id,
+        admin_id: adminId,
+        status: 'pending',
+      });
+
+    if (error) {
+      console.error('Error creating call:', error);
+      toast({
+        title: "Call Failed",
+        description: "Failed to initiate call. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Calling Admin",
+      description: "Connecting to admin...",
+    });
+
+    navigate(`/video-call/${callId}`, {
+      state: {
+        remoteUserId: adminId,
+        isIncoming: false,
+      },
+    });
+  };
+
   return (
     <main className="flex-1 p-8 pb-24 min-h-screen w-full">
         <div className="max-w-7xl mx-auto">
@@ -47,12 +111,22 @@ export default function StudentDashboard() {
               <h1 className="text-3xl font-bold mb-2">Welcome Back!</h1>
               <p className="text-muted-foreground">Here's your complaint overview</p>
             </div>
-            <Button asChild className="hero-gradient">
-              <Link to="/student/submit">
-                <Plus className="h-4 w-4 mr-2" />
-                New Complaint
-              </Link>
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleCallAdmin}
+                variant="outline"
+                className="border-primary/50 hover:bg-primary/10"
+              >
+                <Video className="h-4 w-4 mr-2" />
+                Call Admin
+              </Button>
+              <Button asChild className="hero-gradient">
+                <Link to="/student/submit">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Complaint
+                </Link>
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
