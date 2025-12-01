@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+# Brotal - Complaint Management System
 
 ## Project info
 

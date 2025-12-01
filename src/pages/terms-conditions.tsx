@@ -36,7 +36,7 @@ export default function TermsConditions() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground leading-relaxed">
-                By accessing and using the Brototype Complaint Portal, you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you should not use this portal.
+                By accessing and using Brotal, you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you should not use this portal.
               </p>
             </CardContent>
           </Card>
@@ -47,7 +47,7 @@ export default function TermsConditions() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground leading-relaxed">
-                This portal is exclusively for Brototype students and authorized administrators. By registering, you confirm that you are a legitimate member of the Brototype community and will use the portal in accordance with these terms.
+                This portal is exclusively for Brotal students and authorized administrators. By registering, you confirm that you are a legitimate member of the Brotal community and will use the portal in accordance with these terms.
               </p>
             </CardContent>
           </Card>
@@ -78,7 +78,7 @@ export default function TermsConditions() {
               <div>
                 <h3 className="font-semibold text-lg mb-2">Valid Complaints</h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  Complaints should be legitimate concerns related to Brototype facilities, services, or programs. Each complaint must include a clear description and appropriate category.
+                  Complaints should be legitimate concerns related to Brotal facilities, services, or programs. Each complaint must include a clear description and appropriate category.
                 </p>
               </div>
               <div>
@@ -110,7 +110,7 @@ export default function TermsConditions() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground leading-relaxed">
-                All content on this portal, including but not limited to text, graphics, logos, and software, is the property of Brototype or its licensors and is protected by copyright and other intellectual property laws. You may not copy, modify, or distribute any content without explicit permission.
+                All content on this portal, including but not limited to text, graphics, logos, and software, is the property of Brotal or its licensors and is protected by copyright and other intellectual property laws. You may not copy, modify, or distribute any content without explicit permission.
               </p>
             </CardContent>
           </Card>
@@ -143,7 +143,7 @@ export default function TermsConditions() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground leading-relaxed">
-                The portal is provided "as is" without warranties of any kind. Brototype shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the portal.
+                The portal is provided "as is" without warranties of any kind. Brotal shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the portal.
               </p>
             </CardContent>
           </Card>
@@ -176,7 +176,7 @@ export default function TermsConditions() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground leading-relaxed">
-                If you have any questions about these Terms and Conditions, please contact the Brototype administration through the complaint portal or at our official communication channels.
+                If you have any questions about these Terms and Conditions, please contact the Brotal administration through the portal or at our official communication channels.
               </p>
             </CardContent>
           </Card>

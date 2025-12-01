@@ -36,7 +36,7 @@ export default function PrivacyPolicy() {
             </CardHeader>
             <CardContent className="prose prose-neutral dark:prose-invert max-w-none">
               <p className="text-muted-foreground leading-relaxed">
-                Welcome to the Brototype Complaint Portal. We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains what information we collect, how we use it, and what rights you have in relation to it.
+                Welcome to Brotal. We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains what information we collect, how we use it, and what rights you have in relation to it.
               </p>
             </CardContent>
           </Card>
@@ -151,7 +151,7 @@ export default function PrivacyPolicy() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground leading-relaxed">
-                If you have any questions about this Privacy Policy or wish to exercise your rights, please contact the Brototype administration through the complaint portal or at our official communication channels.
+                If you have any questions about this Privacy Policy or wish to exercise your rights, please contact the Brotal administration through the portal or at our official communication channels.
               </p>
             </CardContent>
           </Card>

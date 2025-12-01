@@ -71,7 +71,7 @@ export default function Landing() {
               variants={itemVariants}
               className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed"
             >
-              A transparent complaint system for Brototype students — fast, fair, and reliable.
+              A transparent complaint system for Brotal students — fast, fair, and reliable.
             </motion.p>
 
             <motion.div 
@@ -95,7 +95,7 @@ export default function Landing() {
             >
               <Users className="h-4 w-4 text-primary" />
               <p>
-                Trusted by <span className="font-semibold text-primary">500+ students</span> at Brototype
+                Trusted by <span className="font-semibold text-primary">500+ students</span> at Brotal
               </p>
             </motion.div>
           </motion.div>
@@ -309,7 +309,7 @@ export default function Landing() {
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-muted-foreground text-sm">
             <div className="flex flex-col sm:flex-row items-center gap-4">
-              <p>© 2025 Brototype. All rights reserved.</p>
+              <p>© 2025 Brotal. All rights reserved.</p>
               <div className="flex items-center gap-4">
                 <Link to="/privacy-policy" className="hover:text-primary transition-colors">
                   Privacy Policy
