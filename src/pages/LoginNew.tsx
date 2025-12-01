@@ -114,7 +114,7 @@ export default function LoginNew() {
           {/* Logo */}
           <div className="flex items-center justify-center mb-8">
             <MessageSquare className="h-10 w-10 text-primary mr-3" />
-            <h1 className="text-2xl font-bold text-foreground">Brototype Portal</h1>
+            <h1 className="text-2xl font-bold text-foreground">Brotal</h1>
           </div>
 
           {/* Form Card */}

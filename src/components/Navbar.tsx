@@ -37,7 +37,7 @@ export function Navbar() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <MessageSquare className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg">Brototype Portal</span>
+          <span className="font-bold text-lg">Brotal</span>
         </Link>
 
         {isLanding && (
