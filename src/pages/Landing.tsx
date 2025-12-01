@@ -307,7 +307,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-border">
         <div className="container mx-auto">
-          <div className="flex flex-col items-center justify-center gap-4 text-muted-foreground text-sm">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-muted-foreground text-sm">
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <p>© 2025 Brototype. All rights reserved.</p>
               <div className="flex items-center gap-4">
