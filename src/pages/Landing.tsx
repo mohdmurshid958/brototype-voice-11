@@ -307,16 +307,29 @@ export default function Landing() {
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-border">
         <div className="container mx-auto">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-muted-foreground text-sm">
-            <p>© 2025 Brototype. All rights reserved.</p>
-            <div className="flex items-center gap-4">
-              <Link to="/privacy-policy" className="hover:text-primary transition-colors">
-                Privacy Policy
-              </Link>
-              <span className="text-border">|</span>
-              <Link to="/terms-conditions" className="hover:text-primary transition-colors">
-                Terms & Conditions
-              </Link>
+          <div className="flex flex-col items-center justify-center gap-4 text-muted-foreground text-sm">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <p>© 2025 Brototype. All rights reserved.</p>
+              <div className="flex items-center gap-4">
+                <Link to="/privacy-policy" className="hover:text-primary transition-colors">
+                  Privacy Policy
+                </Link>
+                <span className="text-border">|</span>
+                <Link to="/terms-conditions" className="hover:text-primary transition-colors">
+                  Terms & Conditions
+                </Link>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>Developed by</span>
+              <a 
+                href="https://github.com/muhammedshamilmt" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="font-semibold text-primary hover:text-primary/80 transition-colors hover:underline"
+              >
+                Muhammed Shamil
+              </a>
             </div>
           </div>
         </div>
