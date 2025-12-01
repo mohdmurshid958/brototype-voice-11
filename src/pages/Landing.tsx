@@ -183,14 +183,14 @@ export default function Landing() {
           <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse delay-500" />
         </div>
         <div className="container mx-auto">
-          <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center max-w-7xl mx-auto">
+          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center max-w-7xl mx-auto">
             {/* Left Content */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="space-y-4 md:space-y-6"
+              className="space-y-4 md:space-y-6 order-2 lg:order-1"
             >
               <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-primary/10 border border-primary/20 text-primary backdrop-blur-sm">
                 <MessageSquare className="h-3 w-3 md:h-4 md:w-4" />
@@ -248,10 +248,10 @@ export default function Landing() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="flex justify-center items-center min-h-[400px] md:min-h-[500px] mt-8 lg:mt-0"
+              className="flex justify-center items-center min-h-[300px] sm:min-h-[400px] md:min-h-[500px] order-1 lg:order-2 w-full overflow-hidden"
             >
-              <div className="scale-75 sm:scale-90 md:scale-100">
-                <DisplayCards 
+              <div className="scale-[0.65] sm:scale-75 md:scale-90 lg:scale-100 origin-center">
+                <DisplayCards
                   cards={[
                     {
                       icon: <AlertCircle className="size-4 text-destructive" />,
